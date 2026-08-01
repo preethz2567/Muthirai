@@ -12,7 +12,7 @@ will be wired in subsequent prompts without changing the response contracts.
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 
 from app.schemas.brand_identity_card import BrandIdentityCard, VisualTokens
 from app.schemas.content_score_result import ContentScoreResult, FlaggedPhrase
@@ -150,37 +150,40 @@ async def embed_image_centroid(owner: str, files: List[UploadFile] = File(...)) 
     "/score",
     response_model=ContentScoreResult,
     summary="Score a piece of content against a brand identity card",
-    description=(
-        "Real pipeline: embed content → compute Consistency + Distinctiveness vs brand "
-        "& generic centroids → classify quadrant → run Critic + Suggestion agents in "
-        "parallel → return full Content Score Result (TRD section 4.2)."
-    ),
 )
-async def score(payload: ScoreRequest) -> ContentScoreResult:
-    """
-    Real scoring pipeline (Prompt 13).
-
-    Steps:
-      1. Embed content text via sentence-transformers.
-      2. Compute Consistency  = cosine_sim(content_vec, brand_centroid).
-      3. Compute Distinctiveness = 1 – cosine_sim(content_vec, generic_centroid).
-         Generic centroid is the average of all per-category generic centroids.
-      4. Classify quadrant using 0.5 threshold on each axis.
-      5. Run Critic Agent + Suggestion Agent in parallel (asyncio.gather).
-      6. Return full TRD 4.2 ContentScoreResult.
-    """
+async def score(
+    content: str = Form(None),
+    modality: str = Form("text"),
+    brand_identity_card: str = Form(...),
+    target_identity_card: str = Form(None),
+    blend_weight: float = Form(0.0),
+    file: UploadFile = File(None)
+) -> ContentScoreResult:
+    import json
     import asyncio
     import numpy as np
-    from app.scoring.embedder import embed_texts
     from app.scoring.vector_store import search_nearest, list_owners
+    
+    brand_card_dict = json.loads(brand_identity_card)
+    brand_id = brand_card_dict.get("brand_id", str(uuid.uuid4()))
 
-    brand_id = payload.brand_identity_card.get("brand_id", str(uuid.uuid4()))
+    if modality == "image":
+        if not file:
+            raise HTTPException(status_code=400, detail="file is required for image modality")
+        image_bytes = await file.read()
+        from app.scoring.image_embedder import compute_image_centroid
+        content_vec = compute_image_centroid([image_bytes]) # shape (512,)
+        brand_prefix = "brand_centroid_image:"
+        generic_prefix = "generic_centroid_image:"
+        content_for_response = file.filename or "image.jpg"
+    else:
+        from app.scoring.embedder import embed_texts
+        content_vec = embed_texts([content])[0]  # shape (384,)
+        brand_prefix = "brand_centroid:"
+        generic_prefix = "generic_centroid:"
+        content_for_response = content
 
-    # ── 1. Embed content ──────────────────────────────────────────────────────
-    content_vec: np.ndarray = embed_texts([payload.content])[0]  # shape (384,)
-
-    # ── 2. Consistency — cosine sim vs brand centroid ─────────────────────────
-    brand_owner = f"brand_centroid:{brand_id}"
+    brand_owner = f"{brand_prefix}{brand_id}"
     brand_distances, _ = search_nearest(brand_owner, content_vec, k=1)
     if brand_distances.size > 0 and brand_distances[0].size > 0:
         consistency_score = float(np.clip(brand_distances[0][0], 0.0, 1.0))
@@ -190,20 +193,21 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
             detail=f"Missing brand centroid for brand {brand_id}."
         )
 
-    # ── 3. Distinctiveness — 1 – cosine sim vs generic centroid ──────────────
-    # Aggregate all generic_centroid:* owners into a mean generic centroid.
-    # We must exclude image centroids (generic_centroid_image:*) since they have different dimensionality (512 vs 384).
     all_owners = list_owners()
-    generic_owners = [o for o in all_owners if o.startswith("generic_centroid:") and not o.startswith("generic_centroid_image")]
+    
+    if modality == "image":
+        generic_owners = [o for o in all_owners if o.startswith(generic_prefix)]
+    else:
+        generic_owners = [o for o in all_owners if o.startswith(generic_prefix) and not o.startswith("generic_centroid_image")]
 
-    # Also check disk-persisted indexes for any generic_centroid keys not yet
-    # loaded in-memory (the store lazy-loads on first access, so one search
-    # per key is enough to trigger the load).
-    from app.scoring.vector_store import INDEX_DIR, _sanitize_owner
-    for fpath in INDEX_DIR.glob("generic_centroid_*.bin"):
-        if fpath.stem.startswith("generic_centroid_image"):
+    from app.scoring.vector_store import INDEX_DIR
+    
+    prefix_underscore = generic_prefix.replace(':', '_')
+    for fpath in INDEX_DIR.glob(f"{prefix_underscore}*.bin"):
+        # For text: we don't want to include generic_centroid_image when globbing generic_centroid_*
+        if modality == "text" and fpath.stem.startswith("generic_centroid_image"):
             continue
-        key = fpath.stem.replace("generic_centroid_", "generic_centroid:", 1)
+        key = fpath.stem.replace(prefix_underscore, generic_prefix, 1)
         if key not in all_owners:
             generic_owners.append(key)
 
@@ -221,7 +225,6 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
     max_generic_sim = float(np.max(generic_sims))
     distinctiveness_score = float(np.clip(1.0 - max_generic_sim, 0.0, 1.0))
 
-    # ── 4. Classify quadrant (threshold = 0.40 on each axis) ─────────────────
     THRESHOLD = 0.40
     high_consistency   = consistency_score   >= THRESHOLD
     high_distinctiveness = distinctiveness_score >= THRESHOLD
@@ -235,37 +238,35 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
     else:
         quadrant = "off_brand"
 
-    # ── 5. Critic + Suggestion agents in parallel ─────────────────────────────
-    from app.agents.critic_agent import critique_content
-    from app.agents.suggestion_agent import suggest_rewrite
+    from app.agents.critic_agent import critique_content, critique_image
+    from app.agents.suggestion_agent import suggest_rewrite, suggest_image_rewrite
 
     def _run_critic() -> list:
+        if modality == "image":
+            return critique_image(image_bytes, brand_card_dict)
         return critique_content(
-            content=payload.content,
+            content=content,
             consistency_score=consistency_score,
             distinctiveness_score=distinctiveness_score,
-            identity_card=payload.brand_identity_card,
+            identity_card=brand_card_dict,
         )
 
     def _run_suggestion(flagged: list) -> str:
+        if modality == "image":
+            return suggest_image_rewrite(brand_card_dict)
         return suggest_rewrite(
-            content=payload.content,
+            content=content,
             flagged_phrases=flagged,
-            identity_card=payload.brand_identity_card,
+            identity_card=brand_card_dict,
         )
 
     loop = asyncio.get_event_loop()
 
-    # Run Critic in a thread (blocking LLM call) without blocking the event loop
     flagged_phrases_raw = await loop.run_in_executor(None, _run_critic)
-
-    # Run Suggestion in parallel while Critic result is already available
-    # (Suggestion needs the critic output, so it runs after but still async)
     suggested_rewrite_text = await loop.run_in_executor(
         None, _run_suggestion, flagged_phrases_raw
     )
 
-    # ── 6. Build response ─────────────────────────────────────────────────────
     flagged_phrase_models = [
         FlaggedPhrase(
             phrase=fp.get("phrase", ""),
@@ -278,7 +279,7 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
     return ContentScoreResult(
         content_id=str(uuid.uuid4()),
         brand_id=brand_id,
-        modality="text",
+        modality=modality,
         consistency_score=consistency_score,
         distinctiveness_score=distinctiveness_score,
         quadrant=quadrant,

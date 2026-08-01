@@ -102,3 +102,20 @@ def suggest_rewrite(content: str, flagged_phrases: List[Dict[str, Any]], identit
     except Exception as exc:
         logger.error(f"suggest_rewrite: LLM call failed ({exc}) — returning original content.")
         return content
+
+def suggest_image_rewrite(identity_card: dict) -> str:
+    """
+    For images, we do not rewrite the image. Instead, we return a simple tip
+    pulled from the brand's visual tokens.
+    """
+    visual_tokens = identity_card.get("visual_tokens", {})
+    
+    # Can be dict if passed as dict, or object if pydantic model
+    if isinstance(visual_tokens, dict):
+        primary_colors = visual_tokens.get("primary_colors", [])
+    else:
+        primary_colors = getattr(visual_tokens, "primary_colors", [])
+        
+    if primary_colors:
+        return f"Consider using colors from your brand palette: {', '.join(primary_colors)}"
+    return "Consider using colors from your brand palette."

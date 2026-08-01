@@ -20,10 +20,10 @@ import os
 import uuid
 import logging
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -336,9 +336,13 @@ def patch_brand(
 )
 async def score_content(
     brand_id: str,
-    payload: ScoreRequest,
+    content: Optional[str] = Form(None),
+    modality: str = Form("text"),
+    file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
 ) -> ScoreResultOut:
+    import json
+    
     # ── 1. Load brand + identity card ─────────────────────────────────────────
     brand = db.query(Brand).filter(Brand.id == brand_id).first()
     if brand is None:
@@ -384,14 +388,25 @@ async def score_content(
     # ── 2. Call agent-worker /internal/score ──────────────────────────────────
     try:
         async with _worker_client() as client:
+            form_data = {
+                "modality": modality,
+                "brand_identity_card": json.dumps(identity_card_dict),
+                "blend_weight": str(blend_weight),
+            }
+            if content:
+                form_data["content"] = content
+            if target_identity_card_dict:
+                form_data["target_identity_card"] = json.dumps(target_identity_card_dict)
+                
+            files = None
+            if modality == "image" and file:
+                image_bytes = await file.read()
+                files = {"file": (file.filename, image_bytes, file.content_type)}
+            
             resp = await client.post(
                 "/internal/score",
-                json={
-                    "content": payload.content,
-                    "brand_identity_card": identity_card_dict,
-                    "target_identity_card": target_identity_card_dict,
-                    "blend_weight": blend_weight,
-                },
+                data=form_data,
+                files=files
             )
     except (httpx.ConnectError, httpx.TimeoutException) as exc:
         _handle_worker_error(exc, "score")
@@ -410,8 +425,8 @@ async def score_content(
     content_item = ContentItem(
         id=content_id,
         brand_id=brand_id,
-        modality=payload.modality if payload.modality in ("text", "image") else "text",
-        raw_content=payload.content,
+        modality=modality if modality in ("text", "image") else "text",
+        raw_content=file.filename if (modality == "image" and file) else (content or ""),
     )
     db.add(content_item)
     db.flush()
@@ -448,7 +463,8 @@ async def score_content(
 
     # ── 4. Persist agent trace steps (one per stage) ──────────────────────────
     now = datetime.now(timezone.utc)
-    content_snippet = payload.content[:120] + ("…" if len(payload.content) > 120 else "")
+    content_snippet = (file.filename if (modality == "image" and file) else (content or ""))
+    content_snippet = content_snippet[:120] + ("…" if len(content_snippet) > 120 else "")
     flagged_count   = len(result_data.get("flagged_phrases", []))
     rewrite_snippet = rewrite_text[:120] + ("…" if len(rewrite_text) > 120 else "") if rewrite_text else ""
 
@@ -458,7 +474,7 @@ async def score_content(
             content_id=content_id,
             agent_name="embedding",
             input_snippet=content_snippet,
-            output_snippet=f"Embedded {len(payload.content)} chars → 384-dim vector (all-MiniLM-L6-v2)",
+            output_snippet=f"Embedded {len(content_snippet)} chars → 384-dim vector (all-MiniLM-L6-v2)",
             status="done",
             started_at=now,
             completed_at=now,
