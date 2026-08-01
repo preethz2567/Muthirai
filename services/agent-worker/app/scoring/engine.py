@@ -148,6 +148,8 @@ def score_content(
     brand_corpus: List[str],
     generic_corpus: List[str],
     threshold: float = QUADRANT_THRESHOLD,
+    target_corpus: List[str] | None = None,
+    blend_weight: float = 0.0,
 ) -> ScoringResult:
     """
     Run the full two-axis scoring pipeline from TRD §6, steps 1–6.
@@ -166,6 +168,8 @@ def score_content(
         generic_corpus:  List of text strings representing generic / category
                          content (used to build the generic centroid).
         threshold:       Quadrant classification threshold (default 0.5).
+        target_corpus:   Optional list of text strings representing a target identity.
+        blend_weight:    Float between 0 and 1. If > 0, blends current and target centroids.
 
     Returns:
         ScoringResult with consistency, distinctiveness, quadrant, and the
@@ -188,8 +192,21 @@ def score_content(
     )
 
     # ── Step 1: Brand centroid ────────────────────────────────────────────────
-    brand_centroid = compute_centroid(brand_corpus)
-    logger.debug("Brand centroid computed. Shape: %s", brand_centroid.shape)
+    current_centroid = compute_centroid(brand_corpus)
+    logger.debug("Current centroid computed. Shape: %s", current_centroid.shape)
+    
+    if target_corpus and blend_weight > 0.0:
+        target_centroid = compute_centroid(target_corpus)
+        logger.debug("Target centroid computed. Blending with weight %.2f", blend_weight)
+        
+        blended = (1.0 - blend_weight) * current_centroid + blend_weight * target_centroid
+        norm = np.linalg.norm(blended)
+        if norm > 1e-10:
+            brand_centroid = blended / norm
+        else:
+            brand_centroid = current_centroid
+    else:
+        brand_centroid = current_centroid
 
     # ── Step 2: Generic centroid ──────────────────────────────────────────────
     generic_centroid = compute_centroid(generic_corpus)

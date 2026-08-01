@@ -29,6 +29,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.brand import Brand
 from app.models.brand_identity_card import BrandIdentityCard
+from app.models.brand_trajectory import BrandTrajectory
 from app.models.content_item import ContentItem
 from app.models.score_result import ScoreResult
 from app.models.flagged_phrase import FlaggedPhrase
@@ -42,6 +43,10 @@ from app.schemas.brands import (
     DriftHistoryItem,
     ScoreRequest,
     ScoreResultOut,
+    TrajectoryChatRequest,
+    TrajectoryChatResponse,
+    TrajectoryConfirmRequest,
+    BrandTrajectoryOut,
 )
 
 logger = logging.getLogger(__name__)
@@ -244,6 +249,23 @@ async def score_content(
         "created_at": card.created_at.isoformat(),
     }
 
+    # Fetch active trajectory if it exists
+    active_trajectory = db.query(BrandTrajectory).filter(
+        BrandTrajectory.brand_id == brand_id,
+        BrandTrajectory.status == "active"
+    ).first()
+
+    target_identity_card_dict = None
+    blend_weight = 0.0
+
+    if active_trajectory:
+        target_identity_card_dict = {
+            "tone_words": active_trajectory.target_tone_words or [],
+            "vocabulary": active_trajectory.target_vocabulary or [],
+            "core_values": active_trajectory.target_core_values or []
+        }
+        blend_weight = active_trajectory.blend_weight
+
     # ── 2. Call agent-worker /internal/score ──────────────────────────────────
     try:
         async with _worker_client() as client:
@@ -252,6 +274,8 @@ async def score_content(
                 json={
                     "content": payload.content,
                     "brand_identity_card": identity_card_dict,
+                    "target_identity_card": target_identity_card_dict,
+                    "blend_weight": blend_weight,
                 },
             )
     except (httpx.ConnectError, httpx.TimeoutException) as exc:
@@ -416,3 +440,93 @@ def get_trace(
     )
 
     return [AgentTraceStepOut.model_validate(step) for step in steps]
+
+
+# ── POST /brands/{id}/trajectory/chat ────────────────────────────────────────
+
+@router.post(
+    "/{brand_id}/trajectory/chat",
+    response_model=TrajectoryChatResponse,
+    summary="Chat with the Trajectory Agent",
+)
+async def trajectory_chat(
+    brand_id: str,
+    payload: TrajectoryChatRequest,
+    db: Session = Depends(get_db),
+) -> TrajectoryChatResponse:
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+    if not brand or not brand.identity_card:
+        raise HTTPException(status_code=404, detail="Brand or identity card not found.")
+    
+    card = brand.identity_card
+    identity_card_dict = {
+        "tone_words": card.tone_words,
+        "vocabulary": card.vocabulary,
+        "core_values": card.core_values,
+    }
+
+    try:
+        async with _worker_client() as client:
+            resp = await client.post(
+                "/internal/trajectory/chat",
+                json={
+                    "chat_history": payload.chat_history,
+                    "current_identity_card": identity_card_dict,
+                },
+            )
+    except (httpx.ConnectError, httpx.TimeoutException) as exc:
+        _handle_worker_error(exc, "trajectory/chat")
+
+    if resp.status_code != 200:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"agent-worker returned {resp.status_code} during trajectory chat.",
+        )
+
+    data = resp.json()
+    return TrajectoryChatResponse(**data)
+
+
+# ── POST /brands/{id}/trajectory/confirm ─────────────────────────────────────
+
+@router.post(
+    "/{brand_id}/trajectory/confirm",
+    response_model=BrandTrajectoryOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Confirm and start a new brand trajectory",
+)
+def trajectory_confirm(
+    brand_id: str,
+    payload: TrajectoryConfirmRequest,
+    db: Session = Depends(get_db),
+) -> BrandTrajectoryOut:
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+    if not brand:
+        raise HTTPException(status_code=404, detail="Brand not found.")
+
+    # Mark existing active trajectories as abandoned
+    existing_active = db.query(BrandTrajectory).filter(
+        BrandTrajectory.brand_id == brand_id,
+        BrandTrajectory.status == "active"
+    ).all()
+    for traj in existing_active:
+        traj.status = "abandoned"
+        traj.updated_at = datetime.now(timezone.utc)
+
+    # Create new active trajectory
+    new_trajectory = BrandTrajectory(
+        id=str(uuid.uuid4()),
+        brand_id=brand_id,
+        target_tone_words=payload.target_tone_words,
+        target_vocabulary=payload.target_vocabulary,
+        target_core_values=payload.target_core_values,
+        blend_weight=0.2, # Start blended slightly towards the target
+        chat_transcript=payload.chat_transcript,
+        status="active",
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(new_trajectory)
+    db.commit()
+    db.refresh(new_trajectory)
+
+    return BrandTrajectoryOut.model_validate(new_trajectory)

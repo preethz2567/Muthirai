@@ -36,3 +36,6 @@ class Brand(Base):
     content_items: Mapped[list["ContentItem"]] = relationship(  # noqa: F821
         "ContentItem", back_populates="brand", cascade="all, delete-orphan"
     )
+    trajectories: Mapped[list["BrandTrajectory"]] = relationship(  # noqa: F821
+        "BrandTrajectory", back_populates="brand", cascade="all, delete-orphan"
+    )

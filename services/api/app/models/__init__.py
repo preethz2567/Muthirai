@@ -5,6 +5,7 @@
 from app.models.base import Base  # noqa: F401
 from app.models.brand import Brand  # noqa: F401
 from app.models.brand_identity_card import BrandIdentityCard  # noqa: F401
+from app.models.brand_trajectory import BrandTrajectory  # noqa: F401
 from app.models.content_item import ContentItem  # noqa: F401
 from app.models.score_result import ScoreResult  # noqa: F401
 from app.models.flagged_phrase import FlaggedPhrase  # noqa: F401
@@ -17,6 +18,7 @@ __all__ = [
     "Base",
     "Brand",
     "BrandIdentityCard",
+    "BrandTrajectory",
     "ContentItem",
     "ScoreResult",
     "FlaggedPhrase",

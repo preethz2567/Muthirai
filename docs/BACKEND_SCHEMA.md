@@ -104,12 +104,27 @@ A brand has one identity card and many content items. Each content item has exac
 | dimension | INTEGER | NOT NULL | Vector dimensionality |
 | created_at | TIMESTAMP | NOT NULL, default now() | Row creation time |
 
+### TABLE: brand_trajectories (N:1 into brands)
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| id | UUID | PK | Primary identifier |
+| brand_id | UUID | FK → brands.id | Owning brand |
+| target_tone_words | JSON (array) | NULLABLE | Target tone words |
+| target_vocabulary | JSON (array) | NULLABLE | Target signature phrases |
+| target_core_values | JSON (array) | NULLABLE | Target core values |
+| blend_weight | FLOAT | NOT NULL, default 0.0 | 0–1 (0 = fully current identity, 1 = fully target) |
+| chat_transcript | JSON (array) | NULLABLE | Record of the user-agent conversation |
+| status | ENUM('active','completed','abandoned') | NOT NULL, default 'active' | Status of the trajectory |
+| created_at | TIMESTAMP | NOT NULL, default now() | Row creation time |
+| updated_at | TIMESTAMP | NOT NULL, default now() | Last modification time |
+
 ## 4. Relationships Summary
 
 | Relationship | Cardinality |
 |---|---|
 | brands → brand_identity_cards | 1 : 1 |
 | brands → content_items | 1 : N |
+| brands → brand_trajectories | 1 : N |
 | content_items → score_results | 1 : 1 |
 | score_results → flagged_phrases | 1 : N |
 | score_results → suggested_rewrites | 1 : 1 |

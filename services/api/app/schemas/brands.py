@@ -134,3 +134,33 @@ class AgentTraceStepOut(BaseModel):
     completed_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}
+
+
+# ── GET /brands/{id}/trajectory ──────────────────────────────────────────────
+
+class TrajectoryChatRequest(BaseModel):
+    chat_history: List[dict] = Field(description="List of chat messages: [{'role': 'user', 'content': '...'}]")
+
+class TrajectoryChatResponse(BaseModel):
+    response_message: str
+    target_card: dict
+
+class TrajectoryConfirmRequest(BaseModel):
+    chat_transcript: List[dict] = Field(description="Final chat history")
+    target_tone_words: Optional[List[str]] = Field(default_factory=list)
+    target_vocabulary: Optional[List[str]] = Field(default_factory=list)
+    target_core_values: Optional[List[str]] = Field(default_factory=list)
+
+class BrandTrajectoryOut(BaseModel):
+    id: str
+    brand_id: str
+    target_tone_words: Optional[List[str]] = None
+    target_vocabulary: Optional[List[str]] = None
+    target_core_values: Optional[List[str]] = None
+    blend_weight: float
+    chat_transcript: Optional[List[dict]] = None
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

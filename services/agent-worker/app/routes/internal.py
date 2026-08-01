@@ -23,7 +23,7 @@ router = APIRouter()
 # ── Request models ─────────────────────────────────────────────────────────────
 
 from pydantic import BaseModel, Field
-from typing import Any
+from typing import Any, List, Dict
 
 
 class IngestRequest(BaseModel):
@@ -39,6 +39,20 @@ class ScoreRequest(BaseModel):
     brand_identity_card: dict[str, Any] = Field(
         description="The brand's identity card (TRD 4.1 shape) to score against"
     )
+    target_identity_card: dict[str, Any] | None = Field(
+        default=None,
+        description="The brand's target identity card, if a trajectory is active"
+    )
+    blend_weight: float = Field(
+        default=0.0,
+        description="Weight of the target identity card in the centroid (0 to 1)"
+    )
+
+class TrajectoryChatRequest(BaseModel):
+    """Input for POST /internal/trajectory/chat."""
+    chat_history: List[Dict[str, str]] = Field(description="Chat messages")
+    current_identity_card: dict[str, Any] = Field(description="The brand's current identity card")
+
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
@@ -57,6 +71,17 @@ async def ingest(payload: IngestRequest) -> BrandIdentityCard:
     from app.agents.ingestion_agent import extract_brand_identity
     
     return extract_brand_identity(payload.source_text)
+
+@router.post(
+    "/trajectory/chat",
+    summary="Propose an updated trajectory card based on chat",
+    description="Trajectory Agent endpoint. Interprets user request to evolve the brand identity.",
+)
+async def trajectory_chat(payload: TrajectoryChatRequest) -> dict:
+    from app.agents.trajectory_agent import propose_trajectory
+    
+    return propose_trajectory(payload.chat_history, payload.current_identity_card)
+
 
 
 @router.post(
