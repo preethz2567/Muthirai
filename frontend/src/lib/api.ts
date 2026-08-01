@@ -25,6 +25,23 @@ export interface BrandIdentityCard {
   created_at: string   // ISO-8601
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export interface TargetCard {
+  tone_words: string[]
+  vocabulary: string[]
+  core_values: string[]
+}
+
+export interface TrajectoryChatResponse {
+  response_message: string
+  target_card: TargetCard
+}
+
+
 // ── Fixture data ──────────────────────────────────────────────────────────────
 
 const FIXTURE_CARD: BrandIdentityCard = {
@@ -90,3 +107,37 @@ export async function updateBrand(
   await delay(500)
   return { ...card }
 }
+
+/**
+ * POST /brands/:id/trajectory/chat (mock)
+ * Simulates a response from the Trajectory Agent.
+ */
+export async function chatTrajectory(
+  _id: string,
+  history: ChatMessage[],
+): Promise<TrajectoryChatResponse> {
+  await delay(1500) // simulate LLM latency
+  const lastMessage = history[history.length - 1]?.content || ''
+  
+  return {
+    response_message: `Got it. You want to shift towards: "${lastMessage}". I've updated the target identity card to reflect a more rebellious and distinct tone.`,
+    target_card: {
+      tone_words: ['rebellious', 'bold', 'unapologetic'],
+      vocabulary: ['disrupt the norm', 'no compromises', 'rewrite the rules'],
+      core_values: ['courage', 'authenticity', 'defiance'],
+    }
+  }
+}
+
+/**
+ * POST /brands/:id/trajectory/confirm (mock)
+ */
+export async function confirmTrajectory(
+  _id: string,
+  _targetCard: TargetCard,
+  _history: ChatMessage[],
+): Promise<{ status: string }> {
+  await delay(500)
+  return { status: 'active' }
+}
+
