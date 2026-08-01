@@ -98,11 +98,11 @@ export default function ScoreResultPage() {
               <h3 style={{ fontFamily: 'Cinzel, serif', marginTop: 0, marginBottom: '1rem', color: '#E8C87A' }}>
                 Critic Agent Feedback
               </h3>
-              {result.flagged_phrases.length === 0 ? (
+              {(result.flagged_phrases || []).length === 0 ? (
                 <p style={{ opacity: 0.7 }}>No issues found! Your content is perfectly aligned.</p>
               ) : (
                 <ul style={{ paddingLeft: '1.25rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {result.flagged_phrases.map((fp, i) => (
+                  {(result.flagged_phrases || []).map((fp, i) => (
                     <li key={i}>
                       <strong style={{ color: '#ff6b6b' }}>"{fp.phrase}"</strong>
                       <p style={{ margin: '0.25rem 0 0 0', opacity: 0.8, fontSize: '0.9rem' }}>{fp.reason}</p>
@@ -149,7 +149,7 @@ export default function ScoreResultPage() {
               
               {showTrace && (
                 <div style={{ marginTop: '1.5rem' }}>
-                  <AgentTracePanel brandId={result.brand_id} contentId={result.content_id} />
+                  <AgentTracePanel brandId={id || result.brand_id} contentId={result.content_id} />
                 </div>
               )}
             </div>

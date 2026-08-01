@@ -17,6 +17,7 @@ import CompassModePage   from './pages/CompassModePage.tsx'
 import ScoreContentPage  from './pages/ScoreContentPage.tsx'
 import ScoreResultPage   from './pages/ScoreResultPage.tsx'
 import QuadrantChart     from './components/QuadrantChart.tsx'
+import DriftDashboardPage  from './pages/DriftDashboardPage.tsx'
 import { getBrandHistory, type DriftHistoryItem } from './lib/api.ts'
 
 
@@ -98,6 +99,22 @@ function DashboardStub() {
         >
           Shift Brand Direction (Compass Mode)
         </button>
+        <button
+          onClick={() => navigate(`/brands/${id || 'draft'}/drift`)}
+          style={{
+            background: 'transparent',
+            border: '1px solid #7A1F2B',
+            color: '#7A1F2B',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 4,
+            fontWeight: 600,
+            cursor: 'pointer',
+            width: '100%',
+            marginTop: '1rem',
+          }}
+        >
+          View Drift Dashboard
+        </button>
       </div>
 
       <div style={{ width: '100%', maxWidth: 600 }}>
@@ -172,6 +189,7 @@ export default function App() {
         <Route path="/brands/:id/score"          element={<ScoreContentPage />} />
         <Route path="/brands/:id/results"        element={<ScoreResultPage />} />
         <Route path="/brands/:id/compass"        element={<CompassModePage />} />
+        <Route path="/brands/:id/drift"          element={<DriftDashboardPage />} />
         {/* Catch-all → redirect to landing */}
         <Route path="*"                          element={<Navigate to="/" replace />} />
       </Routes>
