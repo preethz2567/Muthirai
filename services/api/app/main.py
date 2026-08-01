@@ -1,10 +1,8 @@
 from fastapi import FastAPI
-from app.routes import health, items
-from app.db.session import engine
-from app.models import base
+from app.routes import health
 
-# Create all tables on startup
-base.Base.metadata.create_all(bind=engine)
+# NOTE: Schema creation is managed exclusively by Alembic migrations.
+# Do NOT call Base.metadata.create_all() here — run `alembic upgrade head` instead.
 
 app = FastAPI(
     title="Muthirai API",
@@ -13,4 +11,3 @@ app = FastAPI(
 )
 
 app.include_router(health.router, tags=["Health"])
-app.include_router(items.router, prefix="/items", tags=["Items"])
