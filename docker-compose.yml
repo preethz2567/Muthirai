@@ -1,0 +1,77 @@
+services:
+  # ─────────────────────────────────────────────
+  # 1. Public-facing API  (port 8000)
+  # ─────────────────────────────────────────────
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    container_name: muthirai-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./muthirai.db
+      - AGENT_WORKER_URL=http://agent-worker:8001
+    volumes:
+      - api-db:/app/db-data
+    networks:
+      - muthirai-net
+    depends_on:
+      agent-worker:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─────────────────────────────────────────────
+  # 2. Agent Worker  (port 8001, internal only)
+  # ─────────────────────────────────────────────
+  agent-worker:
+    build:
+      context: ./services/agent-worker
+      dockerfile: Dockerfile
+    container_name: muthirai-agent-worker
+    ports:
+      - "8001:8001"
+    networks:
+      - muthirai-net
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ─────────────────────────────────────────────
+  # 3. Frontend  (port 5173)
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: muthirai-frontend
+    ports:
+      - "5173:80"
+    networks:
+      - muthirai-net
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  muthirai-net:
+    driver: bridge
+
+volumes:
+  api-db:
