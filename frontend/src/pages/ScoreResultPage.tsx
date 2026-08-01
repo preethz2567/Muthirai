@@ -1,5 +1,7 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import QuadrantChart from '../components/QuadrantChart.tsx'
+import AgentTracePanel from '../components/AgentTracePanel.tsx'
+import { useState } from 'react'
 import type { ContentScoreResult } from '../lib/api.ts'
 
 export default function ScoreResultPage() {
@@ -7,6 +9,7 @@ export default function ScoreResultPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const result: ContentScoreResult | undefined = location.state?.result
+  const [showTrace, setShowTrace] = useState(false)
 
   if (!result) {
     return (
@@ -114,6 +117,27 @@ export default function ScoreResultPage() {
                 </p>
               ) : (
                 <p style={{ opacity: 0.7, margin: 0 }}>No rewrite needed.</p>
+              )}
+            </div>
+
+            {/* Agent Trace Toggle */}
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontFamily: 'Cinzel, serif', margin: 0, color: '#E8C87A' }}>
+                  Agent Trace
+                </h3>
+                <button 
+                  onClick={() => setShowTrace(!showTrace)}
+                  style={{ background: 'transparent', border: '1px solid #B8862E', color: '#E8C87A', borderRadius: 4, padding: '0.25rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  {showTrace ? 'Hide Reasoning' : 'View Agent Reasoning'}
+                </button>
+              </div>
+              
+              {showTrace && (
+                <div style={{ marginTop: '1.5rem' }}>
+                  <AgentTracePanel brandId={result.brand_id} contentId={result.content_id} />
+                </div>
               )}
             </div>
 

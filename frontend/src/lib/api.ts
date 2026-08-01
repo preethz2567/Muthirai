@@ -184,3 +184,33 @@ export async function scoreContent(
 
   return response.json()
 }
+
+export interface AgentTraceStep {
+  id: string
+  content_id: string
+  agent_name: string
+  input_snippet: string
+  output_snippet: string
+  status: string
+  started_at: string
+  completed_at: string | null
+}
+
+/**
+ * GET /brands/:id/trace/:content_id (REAL API)
+ * Fetches the ordered agent trace steps for a specific content item.
+ */
+export async function getAgentTrace(
+  brandId: string,
+  contentId: string
+): Promise<AgentTraceStep[]> {
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands/${brandId}/trace/${contentId}`)
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to fetch agent trace')
+  }
+
+  return response.json()
+}
