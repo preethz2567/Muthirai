@@ -61,7 +61,7 @@ export default function DriftDashboardPage() {
       style={{
         minHeight: '100vh',
         background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'var(--font-sans)',
         color: '#F7F1E8',
       }}
     >
@@ -75,7 +75,7 @@ export default function DriftDashboardPage() {
           </span>
           <span
             className="text-base font-semibold tracking-widest uppercase"
-            style={{ fontFamily: 'Cinzel, serif', color: '#E8C87A' }}
+            style={{ fontFamily: 'var(--font-heading)', color: '#E8C87A' }}
           >
             Muthirai
           </span>
@@ -87,7 +87,7 @@ export default function DriftDashboardPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-10">
         <div className="mb-10 text-center">
-          <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '2.5rem', fontWeight: 700, color: '#E8C87A', marginBottom: '0.5rem' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', fontWeight: 700, color: '#E8C87A', marginBottom: '0.5rem' }}>
             Drift Dashboard
           </h1>
           <p style={{ color: 'rgba(247,241,232,0.6)' }}>
@@ -135,7 +135,7 @@ export default function DriftDashboardPage() {
             </div>
 
             <div>
-              <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.5rem', color: '#E8C87A', marginBottom: '1rem' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', color: '#E8C87A', marginBottom: '1rem' }}>
                 Content History
               </h2>
               <div style={{ background: 'rgba(26,26,26,0.5)', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)', overflow: 'hidden' }}>
@@ -178,10 +178,10 @@ export default function DriftDashboardPage() {
                             {item.quadrant.replace(/_/g, ' ')}
                           </span>
                         </td>
-                        <td style={{ padding: '1rem', textAlign: 'right', fontFamily: '"JetBrains Mono", "IBM Plex Mono", monospace', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>
                           {(item.consistency_score * 100).toFixed(0)}%
                         </td>
-                        <td style={{ padding: '1rem', textAlign: 'right', fontFamily: '"JetBrains Mono", "IBM Plex Mono", monospace', fontSize: '0.9rem', color: '#B8862E' }}>
+                        <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#B8862E' }}>
                           {(item.distinctiveness_score * 100).toFixed(0)}%
                         </td>
                       </tr>

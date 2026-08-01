@@ -10,7 +10,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=sqlite:///./muthirai.db
+      - DATABASE_URL=sqlite:////app/db-data/muthirai.db
       - AGENT_WORKER_URL=http://agent-worker:8001
     volumes:
       - api-db:/app/db-data
@@ -37,6 +37,11 @@ services:
     container_name: muthirai-agent-worker
     ports:
       - "8001:8001"
+    env_file:
+      - ./services/agent-worker/.env
+    volumes:
+      - ./services/agent-worker/indexes:/app/indexes
+      - api-db:/app/db-data
     networks:
       - muthirai-net
     healthcheck:

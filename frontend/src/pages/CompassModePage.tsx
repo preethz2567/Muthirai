@@ -71,7 +71,7 @@ export default function CompassModePage() {
         minHeight: '100vh',
         display: 'flex',
         background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'var(--font-sans)',
         color: '#F7F1E8',
       }}
     >
@@ -80,11 +80,11 @@ export default function CompassModePage() {
         <div style={{ marginBottom: '1.5rem' }}>
           <button
             onClick={() => navigate(`/brands/${id}/dashboard`)}
-            style={{ background: 'transparent', border: 'none', color: '#E8C87A', cursor: 'pointer', fontFamily: 'Cinzel, serif', fontSize: '0.875rem' }}
+            style={{ background: 'transparent', border: 'none', color: '#E8C87A', cursor: 'pointer', fontFamily: 'var(--font-heading)', fontSize: '0.875rem' }}
           >
             ← Back to Dashboard
           </button>
-          <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '2rem', marginTop: '1rem', marginBottom: '0.5rem' }}>
+          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', marginTop: '1rem', marginBottom: '0.5rem' }}>
             Compass Mode
           </h1>
           <p style={{ color: 'rgba(247,241,232,0.6)', fontSize: '0.875rem' }}>
@@ -141,7 +141,7 @@ export default function CompassModePage() {
               color: '#FFF',
               padding: '1rem',
               borderRadius: 4,
-              fontFamily: 'Inter, sans-serif'
+              fontFamily: 'var(--font-sans)'
             }}
           />
           <button
@@ -165,7 +165,7 @@ export default function CompassModePage() {
 
       {/* ── Right Pane: Live Target Card ────────────────────────────────────── */}
       <div style={{ width: '400px', background: 'rgba(0,0,0,0.2)', padding: '2.5rem', display: 'flex', flexDirection: 'column' }}>
-        <h2 style={{ fontFamily: 'Cinzel, serif', fontSize: '1.25rem', color: '#E8C87A', marginBottom: '1.5rem', letterSpacing: '0.05em' }}>
+        <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.25rem', color: '#E8C87A', marginBottom: '1.5rem', letterSpacing: '0.05em' }}>
           Target Identity
         </h2>
         
@@ -213,7 +213,7 @@ export default function CompassModePage() {
                   fontSize: '1rem',
                   cursor: confirming ? 'not-allowed' : 'pointer',
                   opacity: confirming ? 0.7 : 1,
-                  fontFamily: 'Inter, sans-serif'
+                  fontFamily: 'var(--font-sans)'
                 }}
               >
                 {confirming ? 'Confirming...' : 'Confirm This Direction'}

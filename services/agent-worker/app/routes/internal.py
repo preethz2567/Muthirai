@@ -12,7 +12,7 @@ will be wired in subsequent prompts without changing the response contracts.
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Depends
 
 from app.schemas.brand_identity_card import BrandIdentityCard, VisualTokens
 from app.schemas.content_score_result import ContentScoreResult, FlaggedPhrase
@@ -157,8 +157,10 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
     if brand_distances.size > 0 and brand_distances[0].size > 0:
         consistency_score = float(np.clip(brand_distances[0][0], 0.0, 1.0))
     else:
-        # No brand centroid stored yet — treat as fully inconsistent
-        consistency_score = 0.0
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Missing brand centroid for brand {brand_id}."
+        )
 
     # ── 3. Distinctiveness — 1 – cosine sim vs generic centroid ──────────────
     # Aggregate all generic_centroid:* owners into a mean generic centroid.
@@ -170,9 +172,7 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
     # per key is enough to trigger the load).
     from app.scoring.vector_store import INDEX_DIR, _sanitize_owner
     for fpath in INDEX_DIR.glob("generic_centroid_*.bin"):
-        key = fpath.stem.replace("_", ":", 1)  # reverse sanitise first colon only
-        # normalise: generic_centroid_saas -> generic_centroid:saas
-        key = key.replace("generic_centroid_", "generic_centroid:", 1)
+        key = fpath.stem.replace("generic_centroid_", "generic_centroid:", 1)
         if key not in all_owners:
             generic_owners.append(key)
 
@@ -182,15 +182,16 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
         if dists.size > 0 and dists[0].size > 0:
             generic_sims.append(float(dists[0][0]))
 
-    if generic_sims:
-        max_generic_sim = float(np.max(generic_sims))
-        distinctiveness_score = float(np.clip(1.0 - max_generic_sim, 0.0, 1.0))
-    else:
-        # No generic centroids seeded yet — assume maximally distinctive
-        distinctiveness_score = 1.0
+    if not generic_sims:
+        raise HTTPException(
+            status_code=500,
+            detail="Missing generic centroids: database must be seeded before scoring content."
+        )
+    max_generic_sim = float(np.max(generic_sims))
+    distinctiveness_score = float(np.clip(1.0 - max_generic_sim, 0.0, 1.0))
 
-    # ── 4. Classify quadrant (threshold = 0.5 on each axis) ──────────────────
-    THRESHOLD = 0.5
+    # ── 4. Classify quadrant (threshold = 0.40 on each axis) ─────────────────
+    THRESHOLD = 0.40
     high_consistency   = consistency_score   >= THRESHOLD
     high_distinctiveness = distinctiveness_score >= THRESHOLD
 

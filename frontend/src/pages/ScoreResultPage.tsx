@@ -31,7 +31,7 @@ export default function ScoreResultPage() {
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'var(--font-sans)',
       padding: '3rem 2rem',
       color: '#F7F1E8',
       display: 'flex',
@@ -54,7 +54,7 @@ export default function ScoreResultPage() {
                 <strong>Notice:</strong> The scoring service is currently unavailable or timed out. Showing a cached demo result.
               </div>
             )}
-            <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '2.5rem', margin: 0, color: '#E8C87A' }}>
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', margin: 0, color: '#E8C87A' }}>
               Score Results
             </h1>
             <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>
@@ -80,7 +80,7 @@ export default function ScoreResultPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           {/* Left Column: Chart */}
           <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
-            <h3 style={{ fontFamily: 'Cinzel, serif', marginTop: 0, marginBottom: '1.5rem', textAlign: 'center' }}>Placement</h3>
+            <h3 style={{ fontFamily: 'var(--font-heading)', marginTop: 0, marginBottom: '1.5rem', textAlign: 'center' }}>Placement</h3>
             <QuadrantChart
               contentScore={{ x: result.distinctiveness_score, y: result.consistency_score }}
             />
@@ -95,7 +95,7 @@ export default function ScoreResultPage() {
             
             {/* Flagged Phrases */}
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
-              <h3 style={{ fontFamily: 'Cinzel, serif', marginTop: 0, marginBottom: '1rem', color: '#E8C87A' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', marginTop: 0, marginBottom: '1rem', color: '#E8C87A' }}>
                 Critic Agent Feedback
               </h3>
               {(result.flagged_phrases || []).length === 0 ? (
@@ -115,7 +115,7 @@ export default function ScoreResultPage() {
             {/* Suggested Rewrite */}
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <h3 style={{ fontFamily: 'Cinzel, serif', margin: 0, color: '#E8C87A' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: '#E8C87A' }}>
                   Suggestion Agent Rewrite
                 </h3>
                 {result.suggested_rewrite && (
@@ -136,7 +136,7 @@ export default function ScoreResultPage() {
             {/* Agent Trace Toggle */}
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontFamily: 'Cinzel, serif', margin: 0, color: '#E8C87A' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: '#E8C87A' }}>
                   Agent Trace
                 </h3>
                 <button 

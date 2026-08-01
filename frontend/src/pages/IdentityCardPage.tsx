@@ -95,7 +95,7 @@ export default function IdentityCardPage() {
           </span>
           <span
             className="text-base font-semibold tracking-widest uppercase"
-            style={{ fontFamily: 'Cinzel, serif', color: '#E8C87A' }}
+            style={{ fontFamily: 'var(--font-heading)', color: '#E8C87A' }}
           >
             Muthirai
           </span>
@@ -112,13 +112,13 @@ export default function IdentityCardPage() {
         <div className="animate-fade-up mb-8">
           <p
             className="text-xs tracking-widest uppercase mb-3"
-            style={{ color: '#B8862E', fontFamily: 'Cinzel, serif' }}
+            style={{ color: '#B8862E', fontFamily: 'var(--font-heading)' }}
           >
             Step 2 of 3
           </p>
           <h1
             style={{
-              fontFamily: 'Cinzel, serif',
+              fontFamily: 'var(--font-heading)',
               fontSize: '2rem',
               fontWeight: 700,
               color: '#F7F1E8',
@@ -216,7 +216,7 @@ export default function IdentityCardPage() {
                           }}
                           title={hex}
                         />
-                        <span style={{ fontSize: '0.72rem', color: 'rgba(247,241,232,0.5)', fontFamily: 'monospace' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'rgba(247,241,232,0.5)', fontFamily: 'var(--font-mono)' }}>
                           {hex}
                         </span>
                       </div>

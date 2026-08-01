@@ -28,3 +28,6 @@ Thumbs.db
 
 # ── Works folder (local reference notes, not for GitHub) ───
 works/
+
+# ── Ignore brand centroid test data
+brand_centroid_*.bin

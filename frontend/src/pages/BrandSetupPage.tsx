@@ -84,7 +84,7 @@ export default function BrandSetupPage() {
 
           <h2
             style={{
-              fontFamily: 'Cinzel, serif',
+              fontFamily: 'var(--font-heading)',
               fontSize: '1.4rem',
               fontWeight: 600,
               color: '#F7F1E8',
@@ -175,13 +175,13 @@ export default function BrandSetupPage() {
         <div className="animate-fade-up">
           <p
             className="text-xs tracking-widest uppercase mb-3"
-            style={{ color: '#B8862E', fontFamily: 'Cinzel, serif' }}
+            style={{ color: '#B8862E', fontFamily: 'var(--font-heading)' }}
           >
             Step 1 of 3
           </p>
           <h1
             style={{
-              fontFamily: 'Cinzel, serif',
+              fontFamily: 'var(--font-heading)',
               fontSize: '2rem',
               fontWeight: 700,
               color: '#F7F1E8',
@@ -322,7 +322,7 @@ function PageShell({ children }: { children: React.ReactNode }) {
           </span>
           <span
             className="text-base font-semibold tracking-widest uppercase"
-            style={{ fontFamily: 'Cinzel, serif', color: '#E8C87A' }}
+            style={{ fontFamily: 'var(--font-heading)', color: '#E8C87A' }}
           >
             Muthirai
           </span>

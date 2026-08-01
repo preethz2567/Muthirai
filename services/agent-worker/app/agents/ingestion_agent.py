@@ -4,12 +4,15 @@ agents/ingestion_agent.py
 Ingestion agent logic for extracting a Brand Identity Card from raw text.
 Uses the LLM client to parse unstructured brand guidelines or website copy 
 into a structured TRD §4.1 shape.
+
+Supports both raw text AND URLs — if source_text looks like a URL the agent
+fetches the page first, strips HTML tags, and passes the cleaned text to the LLM.
 """
 
+import re
 import uuid
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any
 
 from app.agents.llm_client import call_llm
 from app.schemas.brand_identity_card import BrandIdentityCard, VisualTokens
@@ -49,7 +52,7 @@ You MUST return ONLY valid JSON matching this exact structure (all fields are re
   "brand_name": "extracted brand name, or generic name if unknown",
   "tone_words": ["adjective1", "adjective2"],
   "vocabulary": ["signature phrase 1", "signature phrase 2"],
-  "banned_generic_phrases": ["cliché 1", "cliché 2"],
+  "banned_generic_phrases": ["cliche 1", "cliche 2"],
   "core_values": ["value 1", "value 2"],
   "visual_tokens": {
     "primary_colors": ["#hexcode1", "#hexcode2"],
@@ -60,16 +63,66 @@ You MUST return ONLY valid JSON matching this exact structure (all fields are re
 
 Do not include any explanation, markdown formatting outside of the JSON block, or extra keys."""
 
+
+def _strip_html(html: str) -> str:
+    """Remove HTML tags and collapse whitespace."""
+    text = re.sub(r"<style[^>]*>.*?</style>", "", html, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<script[^>]*>.*?</script>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def _fetch_url_text(url: str) -> str:
+    """Fetch a URL and return stripped visible text (max 8000 chars for LLM)."""
+    import urllib.request
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        )
+    }
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        content_type = resp.headers.get("Content-Type", "")
+        charset = "utf-8"
+        if "charset=" in content_type:
+            charset = content_type.split("charset=")[-1].strip().split(";")[0]
+        html = resp.read().decode(charset, errors="replace")
+    return _strip_html(html)[:8000]
+
+
+def _is_url(text: str) -> bool:
+    """Return True if text looks like a single URL."""
+    stripped = text.strip()
+    return bool(re.match(r"^https?://\S+$", stripped, re.IGNORECASE))
+
+
 def extract_brand_identity(source_text: str) -> BrandIdentityCard:
     """
-    Extract a structured BrandIdentityCard from raw text.
-    On failure (API error, invalid JSON, or Pydantic validation failure), 
-    returns a fallback fixture to prevent crashing the flow.
+    Extract a structured BrandIdentityCard from raw text or a URL.
+    If source_text is a URL, the page is fetched first.
+    On any failure returns a fallback fixture to prevent crashing the flow.
     """
+    # ── Auto-fetch if it's a URL ──────────────────────────────────────────────
+    actual_text = source_text
+    if _is_url(source_text):
+        logger.info(f"source_text looks like a URL — fetching: {source_text}")
+        try:
+            actual_text = _fetch_url_text(source_text.strip())
+            logger.info(f"Fetched {len(actual_text)} chars from {source_text}")
+        except Exception as fetch_err:
+            logger.warning(
+                f"Failed to fetch URL {source_text}: {fetch_err}. "
+                "Falling back to using the URL itself as text."
+            )
+            actual_text = f"Brand website: {source_text}"
+
     try:
         raw_json = call_llm(
             system_prompt=SYSTEM_PROMPT,
-            user_prompt=f"Extract the brand identity from the following text:\n\n{source_text}",
+            user_prompt=f"Extract the brand identity from the following text:\n\n{actual_text}",
             response_format="json"
         )
         

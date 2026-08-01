@@ -98,13 +98,13 @@ export default function AgentTracePanel({ brandId, contentId }: AgentTracePanelP
               <div style={{ padding: '1rem', borderTop: '1px solid rgba(184,134,46,0.2)', fontSize: '0.875rem' }}>
                 <div style={{ marginBottom: '1rem' }}>
                   <strong style={{ color: '#E8C87A', display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase' }}>Input Snippet</strong>
-                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: 4, fontFamily: 'monospace', opacity: 0.9 }}>
+                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: 4, fontFamily: 'var(--font-mono)', opacity: 0.9 }}>
                     {step.input_snippet || 'No input'}
                   </div>
                 </div>
                 <div>
                   <strong style={{ color: '#E8C87A', display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase' }}>Output Snippet</strong>
-                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: 4, fontFamily: 'monospace', opacity: 0.9 }}>
+                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: 4, fontFamily: 'var(--font-mono)', opacity: 0.9 }}>
                     {step.output_snippet || 'No output'}
                   </div>
                 </div>

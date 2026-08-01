@@ -142,37 +142,65 @@ async def create_brand(
     db.add(identity_card)
     db.commit()
 
-    # ── 3. Call agent-worker /internal/embed ──────────────────────────────────
-    try:
-        async with _worker_client() as client:
-            embed_resp = await client.post(
-                "/internal/embed",
-                json={
-                    "text": source_text,
-                    "owner": f"brand_centroid:{brand_id}"
-                },
-            )
-    except (httpx.ConnectError, httpx.TimeoutException) as exc:
-        logger.warning(f"Failed to embed brand centroid for {brand_id}: {exc}")
-        embed_resp = None
-
-    if embed_resp and embed_resp.status_code == 200:
-        embed_data = embed_resp.json()
-        embedding_record = Embedding(
-            id=str(uuid.uuid4()),
-            owner_type="brand_centroid",
-            owner_id=brand_id,
-            vector_ref=embed_data["vector_ref"],
-            model_name=embed_data["model_name"],
-            dimension=embed_data["dimension"],
-            created_at=datetime.now(timezone.utc)
-        )
-        db.add(embedding_record)
-        db.commit()
+    # ── 3. Build brand centroid from identity card vocabulary ─────────────────
+    # We embed multiple representative texts from the brand identity card
+    # (vocabulary phrases, tone words, core values) rather than the raw source
+    # text alone. This makes the brand centroid semantically rich so that
+    # cosine similarity scores vary meaningfully between on-brand and off-brand content.
+    brand_texts_to_embed: list[str] = []
+    
+    # Add vocabulary phrases (most specific brand signals)
+    vocabulary = card_data.get("vocabulary", [])
+    brand_texts_to_embed.extend(vocabulary)
+    
+    # Add tone words as short brand-characterizing phrases
+    tone_words = card_data.get("tone_words", [])
+    if tone_words:
+        brand_texts_to_embed.append(", ".join(tone_words))
+    
+    # Add core values
+    core_values = card_data.get("core_values", [])
+    brand_texts_to_embed.extend(core_values)
+    
+    # Always include the source text too
+    brand_texts_to_embed.append(source_text)
+    
+    # Embed each text and add to the FAISS index for this brand
+    embed_errors = 0
+    for text in brand_texts_to_embed:
+        if not text or not text.strip():
+            continue
+        try:
+            async with _worker_client() as client:
+                embed_resp = await client.post(
+                    "/internal/embed",
+                    json={
+                        "text": text.strip(),
+                        "owner": f"brand_centroid:{brand_id}"
+                    },
+                )
+            if embed_resp.status_code == 200 and embed_errors == 0:
+                # Only persist DB record once (first successful embed)
+                embed_data = embed_resp.json()
+                embedding_record = Embedding(
+                    id=str(uuid.uuid4()),
+                    owner_type="brand_centroid",
+                    owner_id=brand_id,
+                    vector_ref=embed_data["vector_ref"],
+                    model_name=embed_data["model_name"],
+                    dimension=embed_data["dimension"],
+                    created_at=datetime.now(timezone.utc)
+                )
+                db.add(embedding_record)
+                db.commit()
+        except (httpx.ConnectError, httpx.TimeoutException) as exc:
+            logger.warning(f"Failed to embed brand centroid text for {brand_id}: {exc}")
+            embed_errors += 1
 
     db.refresh(brand)
 
     return BrandOut.model_validate(brand)
+
 
 
 # ── GET /brands/{id} ──────────────────────────────────────────────────────────

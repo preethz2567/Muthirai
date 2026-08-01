@@ -46,7 +46,7 @@ export default function ScoreContentPage() {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
-      fontFamily: 'Inter, sans-serif',
+      fontFamily: 'var(--font-sans)',
       padding: '2rem'
     }}>
       <div style={{
@@ -60,7 +60,7 @@ export default function ScoreContentPage() {
         textAlign: 'center'
       }}>
         
-        <h2 style={{ color: '#F7F1E8', fontFamily: 'Cinzel, serif', fontSize: '2rem', marginBottom: '0.5rem' }}>
+        <h2 style={{ color: '#F7F1E8', fontFamily: 'var(--font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>
           Score Content
         </h2>
         <p style={{ color: 'rgba(247,241,232,0.7)', marginBottom: '2rem' }}>
@@ -82,7 +82,7 @@ export default function ScoreContentPage() {
             padding: '1rem',
             fontSize: '1rem',
             lineHeight: 1.5,
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--font-sans)',
             resize: 'vertical',
             marginBottom: '1.5rem',
             outline: 'none',

@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from app.scoring.embedder import embed_texts, EMBEDDING_DIM
 from app.scoring.vector_store import add_vectors
 
-DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../services/api/muthirai.db'))
+DB_PATH = '/app/db-data/muthirai.db'
 
 CORPUS = {
     "saas": [

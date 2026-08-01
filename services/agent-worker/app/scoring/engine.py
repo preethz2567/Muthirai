@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 
 # ── Quadrant classification ────────────────────────────────────────────────────
 
-QUADRANT_THRESHOLD = 0.5  # TRD §6: "using a threshold (e.g. 0.5) on each axis"
+QUADRANT_THRESHOLD = 0.40  # Lowered from 0.5 to better accommodate short, punchy slogans against massive centroids
 
 # Quadrant layout (TRD §4.2):
 #
