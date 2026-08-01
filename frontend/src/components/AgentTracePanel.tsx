@@ -34,7 +34,7 @@ export default function AgentTracePanel({ brandId, contentId }: AgentTracePanelP
   }, [brandId, contentId])
 
   if (loading) {
-    return <div style={{ color: 'rgba(247,241,232,0.7)', fontSize: '0.9rem', fontStyle: 'italic' }}>Loading trace...</div>
+    return <div style={{ color: 'rgba(247,241,232,0.7)', fontSize: '0.9rem', fontStyle: 'italic' }}>Retrieving agent traces...</div>
   }
 
   if (error) {

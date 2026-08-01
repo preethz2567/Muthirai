@@ -252,7 +252,7 @@ export default function IdentityCardPage() {
             onClick={handleConfirm}
             style={{ fontSize: '1rem', padding: '0.85rem 2rem' }}
           >
-            {saving ? 'Saving…' : 'Confirm & Continue →'}
+            {saving ? 'Saving Identity Card…' : 'Confirm & Continue →'}
           </button>
           <span style={{ fontSize: '0.75rem', color: 'rgba(247,241,232,0.35)' }}>
             You can always edit this later from the dashboard

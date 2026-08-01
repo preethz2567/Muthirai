@@ -105,9 +105,29 @@ function DashboardStub() {
           Drift Dashboard (History)
         </h3>
         {history.length === 0 ? (
-          <p style={{ color: 'rgba(247,241,232,0.5)', textAlign: 'center' }}>No content scored yet.</p>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ color: 'rgba(247,241,232,0.5)', marginBottom: '1rem' }}>Score your first piece of content to see it placed on the quadrant.</p>
+            <button
+              onClick={() => navigate(`/brands/${id || 'draft'}/score`)}
+              style={{
+                background: 'transparent',
+                border: '1px solid #B8862E',
+                color: '#E8C87A',
+                padding: '0.5rem 1rem',
+                borderRadius: 4,
+                cursor: 'pointer',
+              }}
+            >
+              Score New Content
+            </button>
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {history.length === 1 && (
+              <p style={{ color: 'rgba(247,241,232,0.5)', textAlign: 'center', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
+                Score a few more pieces of content to start seeing your brand's trend.
+              </p>
+            )}
             {history.map((h, i) => (
               <div key={i} style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: 8, display: 'flex', justifyContent: 'space-between', border: '1px solid rgba(184,134,46,0.3)' }}>
                 <div>
