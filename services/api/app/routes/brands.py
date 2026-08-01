@@ -31,6 +31,7 @@ from app.models.brand import Brand
 from app.models.brand_identity_card import BrandIdentityCard
 from app.models.brand_trajectory import BrandTrajectory
 from app.models.content_item import ContentItem
+from app.models.embedding import Embedding
 from app.models.score_result import ScoreResult
 from app.models.flagged_phrase import FlaggedPhrase
 from app.models.suggested_rewrite import SuggestedRewrite
@@ -140,6 +141,35 @@ async def create_brand(
     )
     db.add(identity_card)
     db.commit()
+
+    # ── 3. Call agent-worker /internal/embed ──────────────────────────────────
+    try:
+        async with _worker_client() as client:
+            embed_resp = await client.post(
+                "/internal/embed",
+                json={
+                    "text": source_text,
+                    "owner": f"brand_centroid:{brand_id}"
+                },
+            )
+    except (httpx.ConnectError, httpx.TimeoutException) as exc:
+        logger.warning(f"Failed to embed brand centroid for {brand_id}: {exc}")
+        embed_resp = None
+
+    if embed_resp and embed_resp.status_code == 200:
+        embed_data = embed_resp.json()
+        embedding_record = Embedding(
+            id=str(uuid.uuid4()),
+            owner_type="brand_centroid",
+            owner_id=brand_id,
+            vector_ref=embed_data["vector_ref"],
+            model_name=embed_data["model_name"],
+            dimension=embed_data["dimension"],
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(embedding_record)
+        db.commit()
+
     db.refresh(brand)
 
     return BrandOut.model_validate(brand)

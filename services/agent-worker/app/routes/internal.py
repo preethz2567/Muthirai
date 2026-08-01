@@ -53,6 +53,17 @@ class TrajectoryChatRequest(BaseModel):
     chat_history: List[Dict[str, str]] = Field(description="Chat messages")
     current_identity_card: dict[str, Any] = Field(description="The brand's current identity card")
 
+class EmbedRequest(BaseModel):
+    """Input for POST /internal/embed."""
+    text: str = Field(description="The text to embed")
+    owner: str = Field(description="Owner string (e.g. brand_centroid:uuid)")
+
+class EmbedResponse(BaseModel):
+    """Output for POST /internal/embed."""
+    vector_ref: str
+    dimension: int
+    model_name: str
+
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
@@ -81,6 +92,29 @@ async def trajectory_chat(payload: TrajectoryChatRequest) -> dict:
     from app.agents.trajectory_agent import propose_trajectory
     
     return propose_trajectory(payload.chat_history, payload.current_identity_card)
+
+@router.post(
+    "/embed",
+    response_model=EmbedResponse,
+    summary="Compute and persist an embedding to FAISS",
+)
+async def embed_text(payload: EmbedRequest) -> EmbedResponse:
+    from app.scoring.embedder import embed_texts, EMBEDDING_DIM
+    from app.scoring.vector_store import add_vectors
+
+    # Generate single embedding, shape (1, D)
+    vec = embed_texts([payload.text])
+    
+    # Store in FAISS
+    add_vectors(payload.owner, vec)
+
+    return EmbedResponse(
+        vector_ref=payload.owner,
+        dimension=EMBEDDING_DIM,
+        model_name="all-MiniLM-L6-v2"
+    )
+
+
 
 
 

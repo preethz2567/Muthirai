@@ -21,6 +21,8 @@ Design notes:
 from __future__ import annotations
 
 import logging
+import os
+from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
@@ -35,13 +37,29 @@ logger = logging.getLogger(__name__)
 # Each key is an arbitrary owner string, e.g. "brand:<brand_id>" or "generic".
 _indexes: Dict[str, faiss.IndexFlatIP] = {}
 
+INDEX_DIR = Path(os.getenv("FAISS_INDEX_DIR", "indexes"))
+INDEX_DIR.mkdir(parents=True, exist_ok=True)
+
+def _sanitize_owner(owner: str) -> str:
+    return owner.replace(":", "_").replace("/", "_")
 
 def _get_or_create(owner: str) -> faiss.IndexFlatIP:
-    """Return the existing index for `owner`, or create a new one."""
+    """Return the existing index for `owner`, load from disk if present, or create a new one."""
     if owner not in _indexes:
-        _indexes[owner] = faiss.IndexFlatIP(EMBEDDING_DIM)
-        logger.debug("Created FAISS index for owner '%s'", owner)
+        file_path = INDEX_DIR / f"{_sanitize_owner(owner)}.bin"
+        if file_path.exists():
+            _indexes[owner] = faiss.read_index(str(file_path))
+            logger.debug("Loaded FAISS index for owner '%s' from disk", owner)
+        else:
+            _indexes[owner] = faiss.IndexFlatIP(EMBEDDING_DIM)
+            logger.debug("Created FAISS index for owner '%s'", owner)
     return _indexes[owner]
+
+def _save_index(owner: str) -> None:
+    if owner in _indexes:
+        file_path = INDEX_DIR / f"{_sanitize_owner(owner)}.bin"
+        faiss.write_index(_indexes[owner], str(file_path))
+        logger.debug("Saved FAISS index for owner '%s' to disk", owner)
 
 
 # ── Public helpers ─────────────────────────────────────────────────────────────
@@ -56,6 +74,7 @@ def add_vectors(owner: str, vectors: np.ndarray) -> None:
     """
     idx = _get_or_create(owner)
     idx.add(vectors)
+    _save_index(owner)
     logger.debug("Added %d vector(s) to index '%s' (total: %d)", len(vectors), owner, idx.ntotal)
 
 
@@ -93,6 +112,7 @@ def clear_index(owner: str) -> None:
     """Remove all vectors from the named index (useful in tests)."""
     if owner in _indexes:
         _indexes[owner].reset()
+        _save_index(owner)
         logger.debug("Cleared index '%s'", owner)
 
 
