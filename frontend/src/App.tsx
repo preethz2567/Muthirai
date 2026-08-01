@@ -8,13 +8,15 @@
  *   /brands/:id/dashboard    → Stub (Screen 04 — coming in prompt 6)
  *   *                        → Redirect to /
  */
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import LandingPage       from './pages/LandingPage'
-import BrandSetupPage    from './pages/BrandSetupPage'
-import IdentityCardPage  from './pages/IdentityCardPage'
-import CompassModePage   from './pages/CompassModePage'
-import QuadrantChart     from './components/QuadrantChart'
-import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom'
+import LandingPage       from './pages/LandingPage.tsx'
+import BrandSetupPage    from './pages/BrandSetupPage.tsx'
+import IdentityCardPage  from './pages/IdentityCardPage.tsx'
+import CompassModePage   from './pages/CompassModePage.tsx'
+import ScoreContentPage  from './pages/ScoreContentPage.tsx'
+import ScoreResultPage   from './pages/ScoreResultPage.tsx'
+import QuadrantChart     from './components/QuadrantChart.tsx'
+
 
 // ── Dashboard & Results stubs ────────────────────────────────────────────────
 
@@ -24,7 +26,7 @@ function DashboardStub() {
   const location = useLocation()
   
   // Simulated state for demonstration of Prompt 9 requirement
-  const hasTrajectory = location.state?.hasTrajectory
+  const hasTrajectory = (location.state as any)?.hasTrajectory
 
   return (
     <div
@@ -59,6 +61,22 @@ function DashboardStub() {
           Your brand profile has been saved. The full dashboard with recent scores,
           drift sparkline, and scoring entry will be built in the next prompt.
         </p>
+        <button
+          onClick={() => navigate(`/brands/${id || 'draft'}/score`)}
+          style={{
+            background: '#B8862E',
+            border: 'none',
+            color: '#1A050A',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 4,
+            fontWeight: 700,
+            cursor: 'pointer',
+            width: '100%',
+            marginBottom: '1rem',
+          }}
+        >
+          Score New Content
+        </button>
         <button
           onClick={() => navigate(`/brands/${id || 'draft'}/compass`)}
           style={{
@@ -101,6 +119,8 @@ export default function App() {
         <Route path="/setup"                     element={<BrandSetupPage />} />
         <Route path="/brands/:id/review"         element={<IdentityCardPage />} />
         <Route path="/brands/:id/dashboard"      element={<DashboardStub />} />
+        <Route path="/brands/:id/score"          element={<ScoreContentPage />} />
+        <Route path="/brands/:id/results"        element={<ScoreResultPage />} />
         <Route path="/brands/:id/compass"        element={<CompassModePage />} />
         {/* Catch-all → redirect to landing */}
         <Route path="*"                          element={<Navigate to="/" replace />} />

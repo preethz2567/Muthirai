@@ -141,3 +141,46 @@ export async function confirmTrajectory(
   return { status: 'active' }
 }
 
+export interface FlaggedPhrase {
+  id?: string
+  phrase: string
+  reason: string
+}
+
+export interface ContentScoreResult {
+  id?: string
+  content_id: string
+  brand_id: string
+  consistency_score: number
+  distinctiveness_score: number
+  quadrant: 'on_brand' | 'safe_generic' | 'bold_off_brand' | 'off_brand'
+  flagged_phrases: FlaggedPhrase[]
+  suggested_rewrite: string | null
+  scored_at: string
+}
+
+/**
+ * POST /brands/:id/score (REAL API)
+ * Calls the backend scoring pipeline.
+ */
+export async function scoreContent(
+  brandId: string,
+  content: string,
+  modality: 'text' | 'image' = 'text'
+): Promise<ContentScoreResult> {
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands/${brandId}/score`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ content, modality })
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to score content')
+  }
+
+  return response.json()
+}
