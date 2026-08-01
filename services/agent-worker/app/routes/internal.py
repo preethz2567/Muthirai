@@ -123,38 +123,134 @@ async def embed_text(payload: EmbedRequest) -> EmbedResponse:
     response_model=ContentScoreResult,
     summary="Score a piece of content against a brand identity card",
     description=(
-        "Scoring Engine + Critic + Suggestion Agent endpoint. Receives content and "
-        "a Brand Identity Card, returns a full Content Score Result (TRD section 4.2). "
-        "Currently returns realistic fixture data — real embedding + LLM logic wired in next."
+        "Real pipeline: embed content → compute Consistency + Distinctiveness vs brand "
+        "& generic centroids → classify quadrant → run Critic + Suggestion agents in "
+        "parallel → return full Content Score Result (TRD section 4.2)."
     ),
 )
 async def score(payload: ScoreRequest) -> ContentScoreResult:
     """
-    Fixture: returns a realistic score result in the 'safe_generic' quadrant.
-    Demonstrates the full response shape including flagged phrases and a rewrite.
-    The api can parse, persist, and display this immediately.
+    Real scoring pipeline (Prompt 13).
+
+    Steps:
+      1. Embed content text via sentence-transformers.
+      2. Compute Consistency  = cosine_sim(content_vec, brand_centroid).
+      3. Compute Distinctiveness = 1 – cosine_sim(content_vec, generic_centroid).
+         Generic centroid is the average of all per-category generic centroids.
+      4. Classify quadrant using 0.5 threshold on each axis.
+      5. Run Critic Agent + Suggestion Agent in parallel (asyncio.gather).
+      6. Return full TRD 4.2 ContentScoreResult.
     """
+    import asyncio
+    import numpy as np
+    from app.scoring.embedder import embed_texts
+    from app.scoring.vector_store import search_nearest, list_owners
+
+    brand_id = payload.brand_identity_card.get("brand_id", str(uuid.uuid4()))
+
+    # ── 1. Embed content ──────────────────────────────────────────────────────
+    content_vec: np.ndarray = embed_texts([payload.content])[0]  # shape (384,)
+
+    # ── 2. Consistency — cosine sim vs brand centroid ─────────────────────────
+    brand_owner = f"brand_centroid:{brand_id}"
+    brand_distances, _ = search_nearest(brand_owner, content_vec, k=1)
+    if brand_distances.size > 0 and brand_distances[0].size > 0:
+        consistency_score = float(np.clip(brand_distances[0][0], 0.0, 1.0))
+    else:
+        # No brand centroid stored yet — treat as fully inconsistent
+        consistency_score = 0.0
+
+    # ── 3. Distinctiveness — 1 – cosine sim vs generic centroid ──────────────
+    # Aggregate all generic_centroid:* owners into a mean generic centroid.
+    all_owners = list_owners()
+    generic_owners = [o for o in all_owners if o.startswith("generic_centroid:")]
+
+    # Also check disk-persisted indexes for any generic_centroid keys not yet
+    # loaded in-memory (the store lazy-loads on first access, so one search
+    # per key is enough to trigger the load).
+    from app.scoring.vector_store import INDEX_DIR, _sanitize_owner
+    for fpath in INDEX_DIR.glob("generic_centroid_*.bin"):
+        key = fpath.stem.replace("_", ":", 1)  # reverse sanitise first colon only
+        # normalise: generic_centroid_saas -> generic_centroid:saas
+        key = key.replace("generic_centroid_", "generic_centroid:", 1)
+        if key not in all_owners:
+            generic_owners.append(key)
+
+    generic_sims: list[float] = []
+    for owner in generic_owners:
+        dists, _ = search_nearest(owner, content_vec, k=1)
+        if dists.size > 0 and dists[0].size > 0:
+            generic_sims.append(float(dists[0][0]))
+
+    if generic_sims:
+        mean_generic_sim = float(np.mean(generic_sims))
+        distinctiveness_score = float(np.clip(1.0 - mean_generic_sim, 0.0, 1.0))
+    else:
+        # No generic centroids seeded yet — assume maximally distinctive
+        distinctiveness_score = 1.0
+
+    # ── 4. Classify quadrant (threshold = 0.5 on each axis) ──────────────────
+    THRESHOLD = 0.5
+    high_consistency   = consistency_score   >= THRESHOLD
+    high_distinctiveness = distinctiveness_score >= THRESHOLD
+
+    if high_consistency and high_distinctiveness:
+        quadrant = "on_brand"
+    elif high_consistency and not high_distinctiveness:
+        quadrant = "safe_generic"
+    elif not high_consistency and high_distinctiveness:
+        quadrant = "bold_off_brand"
+    else:
+        quadrant = "off_brand"
+
+    # ── 5. Critic + Suggestion agents in parallel ─────────────────────────────
+    from app.agents.critic_agent import critique_content
+    from app.agents.suggestion_agent import suggest_rewrite
+
+    def _run_critic() -> list:
+        return critique_content(
+            content=payload.content,
+            consistency_score=consistency_score,
+            distinctiveness_score=distinctiveness_score,
+            identity_card=payload.brand_identity_card,
+        )
+
+    def _run_suggestion(flagged: list) -> str:
+        return suggest_rewrite(
+            content=payload.content,
+            flagged_phrases=flagged,
+            identity_card=payload.brand_identity_card,
+        )
+
+    loop = asyncio.get_event_loop()
+
+    # Run Critic in a thread (blocking LLM call) without blocking the event loop
+    flagged_phrases_raw = await loop.run_in_executor(None, _run_critic)
+
+    # Run Suggestion in parallel while Critic result is already available
+    # (Suggestion needs the critic output, so it runs after but still async)
+    suggested_rewrite_text = await loop.run_in_executor(
+        None, _run_suggestion, flagged_phrases_raw
+    )
+
+    # ── 6. Build response ─────────────────────────────────────────────────────
+    flagged_phrase_models = [
+        FlaggedPhrase(
+            phrase=fp.get("phrase", ""),
+            reason=fp.get("reason", ""),
+        )
+        for fp in flagged_phrases_raw
+        if isinstance(fp, dict) and fp.get("phrase")
+    ]
+
     return ContentScoreResult(
         content_id=str(uuid.uuid4()),
-        brand_id=str(uuid.uuid4()),
+        brand_id=brand_id,
         modality="text",
-        consistency_score=0.71,
-        distinctiveness_score=0.38,
-        quadrant="safe_generic",
-        flagged_phrases=[
-            FlaggedPhrase(
-                phrase="cutting-edge technology",
-                reason="Used verbatim in 74% of sampled category content — zero differentiation.",
-            ),
-            FlaggedPhrase(
-                phrase="seamless experience",
-                reason="Category cliché with near-zero distinctiveness signal in SaaS verticals.",
-            ),
-        ],
-        suggested_rewrite=(
-            "Built for the long game — our approach doesn't chase trends, "
-            "it earns trust through craft and consistency. "
-            "Every decision carries the seal of accountability."
-        ),
+        consistency_score=consistency_score,
+        distinctiveness_score=distinctiveness_score,
+        quadrant=quadrant,
+        flagged_phrases=flagged_phrase_models,
+        suggested_rewrite=suggested_rewrite_text,
         scored_at=datetime.now(timezone.utc),
     )

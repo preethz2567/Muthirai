@@ -361,6 +361,64 @@ async def score_content(
             rewrite_text=rewrite_text,
         ))
 
+    # ── 4. Persist agent trace steps (one per stage) ──────────────────────────
+    now = datetime.now(timezone.utc)
+    content_snippet = payload.content[:120] + ("…" if len(payload.content) > 120 else "")
+    flagged_count   = len(result_data.get("flagged_phrases", []))
+    rewrite_snippet = rewrite_text[:120] + ("…" if len(rewrite_text) > 120 else "") if rewrite_text else ""
+
+    trace_steps = [
+        AgentTraceStep(
+            id=str(uuid.uuid4()),
+            content_id=content_id,
+            agent_name="embedding",
+            input_snippet=content_snippet,
+            output_snippet=f"Embedded {len(payload.content)} chars → 384-dim vector (all-MiniLM-L6-v2)",
+            status="completed",
+            started_at=now,
+            completed_at=now,
+        ),
+        AgentTraceStep(
+            id=str(uuid.uuid4()),
+            content_id=content_id,
+            agent_name="scoring",
+            input_snippet=f"brand_id={brand_id}",
+            output_snippet=(
+                f"consistency={result_data.get('consistency_score', 0):.2f}, "
+                f"distinctiveness={result_data.get('distinctiveness_score', 0):.2f}, "
+                f"quadrant={result_data.get('quadrant', 'unknown')}"
+            ),
+            status="completed",
+            started_at=now,
+            completed_at=now,
+        ),
+        AgentTraceStep(
+            id=str(uuid.uuid4()),
+            content_id=content_id,
+            agent_name="critic",
+            input_snippet=content_snippet,
+            output_snippet=f"Flagged {flagged_count} phrase(s): " + ", ".join(
+                f"\"{fp.get('phrase', '')}\"" for fp in result_data.get("flagged_phrases", [])[:3]
+            ),
+            status="completed",
+            started_at=now,
+            completed_at=now,
+        ),
+        AgentTraceStep(
+            id=str(uuid.uuid4()),
+            content_id=content_id,
+            agent_name="suggestion",
+            input_snippet=f"Rewriting {flagged_count} flagged span(s)",
+            output_snippet=rewrite_snippet or "No rewrite generated",
+            status="completed",
+            started_at=now,
+            completed_at=now,
+        ),
+    ]
+
+    for step in trace_steps:
+        db.add(step)
+
     db.commit()
     db.refresh(score_result)
 
