@@ -59,11 +59,20 @@ export async function createBrand(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to create brand')
+    throw new Error(errorData.detail || 'Failed to extract brand identity')
   }
 
-  const brandOut = await response.json()
-  return brandOut.identity_card
+  const data = await response.json()
+  return data.identity_card
+}
+
+export async function getBrand(brandId: string): Promise<{ name: string }> {
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands/${brandId}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch brand')
+  }
+  return response.json()
 }
 
 export async function updateBrand(
@@ -153,6 +162,23 @@ export interface ContentScoreResult {
   suggested_rewrite: string | null
   scored_at: string
   is_cached?: boolean
+  modality?: string
+  preview_url?: string
+}
+
+export async function uploadReferenceImages(brandId: string, files: File[]): Promise<{ status: string }> {
+  const API_BASE = 'http://localhost:8000'
+  const formData = new FormData()
+  files.forEach(f => formData.append('images', f))
+  const response = await fetch(`${API_BASE}/brands/${brandId}/reference-images`, {
+    method: 'POST',
+    body: formData
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to upload reference images')
+  }
+  return response.json()
 }
 
 /**
@@ -161,21 +187,26 @@ export interface ContentScoreResult {
  */
 export async function scoreContent(
   brandId: string,
-  content: string,
+  content: string | File,
   modality: 'text' | 'image' = 'text'
 ): Promise<ContentScoreResult> {
   const API_BASE = 'http://localhost:8000'
   
   try {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 15000)
+    const timeoutId = setTimeout(() => controller.abort(), 60000)
+
+    const formData = new FormData();
+    formData.append('modality', modality);
+    if (modality === 'image' && content instanceof File) {
+      formData.append('file', content);
+    } else if (modality === 'text' && typeof content === 'string') {
+      formData.append('content', content);
+    }
 
     const response = await fetch(`${API_BASE}/brands/${brandId}/score`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ content, modality }),
+      body: formData,
       signal: controller.signal
     })
 

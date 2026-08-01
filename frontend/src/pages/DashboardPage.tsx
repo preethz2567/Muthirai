@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getBrandHistory, getAgentTrace, type DriftHistoryItem, type AgentTraceStep } from '../lib/api'
+import { getBrandHistory, getAgentTrace, uploadReferenceImages, type DriftHistoryItem, type AgentTraceStep } from '../lib/api'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 export default function DashboardPage() {
@@ -11,6 +11,23 @@ export default function DashboardPage() {
   const [trace, setTrace] = useState<AgentTraceStep[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  const [refImages, setRefImages] = useState<File[]>([])
+  const [uploadingRef, setUploadingRef] = useState(false)
+
+  const handleRefImageUpload = async () => {
+    if (!id || refImages.length === 0) return
+    setUploadingRef(true)
+    try {
+      await uploadReferenceImages(id, refImages)
+      alert("Reference images saved successfully!")
+      setRefImages([])
+    } catch (e: any) {
+      alert("Failed to save reference images: " + e.message)
+    } finally {
+      setUploadingRef(false)
+    }
+  }
 
   useEffect(() => {
     let mounted = true
@@ -227,6 +244,45 @@ export default function DashboardPage() {
            </div>
         </div>
 
+      </div>
+
+      {/* Reference Images Upload */}
+      <div style={{ marginBottom: '2rem' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Reference Images</h3>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+            Upload 3-5 images (e.g., logo usage, marketing visuals) to establish your brand's visual centroid.
+          </p>
+          <input 
+            type="file" 
+            multiple 
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files) {
+                setRefImages(prev => [...prev, ...Array.from(e.target.files!)])
+              }
+            }}
+            disabled={uploadingRef}
+            style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}
+          />
+          {refImages.length > 0 && (
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+               {refImages.map((f, i) => (
+                 <div key={i} style={{ fontSize: '0.75rem', background: 'rgba(184,134,46,0.2)', padding: '0.25rem 0.5rem', borderRadius: 4, color: '#E8C87A' }}>
+                   {f.name}
+                 </div>
+               ))}
+            </div>
+          )}
+          <button 
+            className="btn-primary" 
+            onClick={handleRefImageUpload} 
+            disabled={refImages.length === 0 || uploadingRef}
+            style={{ alignSelf: 'flex-start', opacity: (refImages.length === 0 || uploadingRef) ? 0.5 : 1 }}
+          >
+            {uploadingRef ? 'Saving...' : 'Save Reference Images'}
+          </button>
+        </div>
       </div>
 
       {/* Activity Log */}

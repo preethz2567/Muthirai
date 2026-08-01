@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useParams } from 'react-router-dom'
+import { getBrand } from '../lib/api'
 
 // Simple SVG Icons
 const IconDashboard = () => (
@@ -62,6 +64,22 @@ const IconHelp = () => (
 export default function AppShell() {
   const { id } = useParams()
   const brandId = id || 'draft'
+  
+  const [brandName, setBrandName] = useState('Acme Corp')
+
+  useEffect(() => {
+    let mounted = true
+    if (brandId && brandId !== 'draft') {
+      getBrand(brandId).then(data => {
+        if (mounted && data.name) {
+          setBrandName(data.name)
+        }
+      }).catch(err => {
+        console.warn("Failed to load brand name for AppShell", err)
+      })
+    }
+    return () => { mounted = false }
+  }, [brandId])
 
   const navItems = [
     { name: 'Dashboard', path: `/brands/${brandId}/dashboard`, icon: <IconDashboard /> },
@@ -123,10 +141,10 @@ export default function AppShell() {
         {/* User Card */}
         <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            A
+            {brandName.charAt(0).toUpperCase()}
           </div>
           <div style={{ flex: 1, overflow: 'hidden' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>Acme Corp</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }} title={brandName}>{brandName}</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--maroon)', fontWeight: 600 }}>Enterprise Plan</div>
           </div>
         </div>

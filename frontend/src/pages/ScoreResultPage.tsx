@@ -80,6 +80,11 @@ export default function ScoreResultPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           {/* Left Column: Chart */}
           <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
+            {result.modality === 'image' && result.preview_url && (
+              <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                <img src={result.preview_url} alt="Uploaded preview" style={{ maxHeight: 200, maxWidth: '100%', borderRadius: 8, objectFit: 'contain' }} />
+              </div>
+            )}
             <h3 style={{ fontFamily: 'var(--font-heading)', marginTop: 0, marginBottom: '1.5rem', textAlign: 'center' }}>Placement</h3>
             <QuadrantChart
               contentScore={{ x: result.distinctiveness_score, y: result.consistency_score }}
@@ -116,9 +121,9 @@ export default function ScoreResultPage() {
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                 <h3 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: '#E8C87A' }}>
-                  Suggestion Agent Rewrite
+                  {result.modality === 'image' ? 'Suggestion Agent Tip' : 'Suggestion Agent Rewrite'}
                 </h3>
-                {result.suggested_rewrite && (
+                {result.suggested_rewrite && result.modality !== 'image' && (
                   <button onClick={handleCopy} style={{ background: 'transparent', border: '1px solid #B8862E', color: '#E8C87A', borderRadius: 4, padding: '0.25rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem' }}>
                     Copy
                   </button>
