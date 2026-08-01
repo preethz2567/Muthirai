@@ -374,7 +374,7 @@ async def score_content(
             agent_name="embedding",
             input_snippet=content_snippet,
             output_snippet=f"Embedded {len(payload.content)} chars → 384-dim vector (all-MiniLM-L6-v2)",
-            status="completed",
+            status="done",
             started_at=now,
             completed_at=now,
         ),
@@ -388,7 +388,7 @@ async def score_content(
                 f"distinctiveness={result_data.get('distinctiveness_score', 0):.2f}, "
                 f"quadrant={result_data.get('quadrant', 'unknown')}"
             ),
-            status="completed",
+            status="done",
             started_at=now,
             completed_at=now,
         ),
@@ -400,7 +400,7 @@ async def score_content(
             output_snippet=f"Flagged {flagged_count} phrase(s): " + ", ".join(
                 f"\"{fp.get('phrase', '')}\"" for fp in result_data.get("flagged_phrases", [])[:3]
             ),
-            status="completed",
+            status="done",
             started_at=now,
             completed_at=now,
         ),
@@ -410,7 +410,7 @@ async def score_content(
             agent_name="suggestion",
             input_snippet=f"Rewriting {flagged_count} flagged span(s)",
             output_snippet=rewrite_snippet or "No rewrite generated",
-            status="completed",
+            status="done",
             started_at=now,
             completed_at=now,
         ),

@@ -152,6 +152,7 @@ export interface ContentScoreResult {
   flagged_phrases: FlaggedPhrase[]
   suggested_rewrite: string | null
   scored_at: string
+  is_cached?: boolean
 }
 
 /**
@@ -164,20 +165,47 @@ export async function scoreContent(
   modality: 'text' | 'image' = 'text'
 ): Promise<ContentScoreResult> {
   const API_BASE = 'http://localhost:8000'
-  const response = await fetch(`${API_BASE}/brands/${brandId}/score`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ content, modality })
-  })
+  
+  try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to score content')
+    const response = await fetch(`${API_BASE}/brands/${brandId}/score`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content, modality }),
+      signal: controller.signal
+    })
+
+    clearTimeout(timeoutId)
+
+    if (!response.ok) {
+      throw new Error('API error')
+    }
+
+    return response.json()
+  } catch (error) {
+    console.warn("scoreContent failed, falling back to cached results", error)
+    
+    // Load fallback results
+    try {
+      const fallbackData = await import('./fallback-results.json')
+      // Randomly pick one of the 4 results
+      const results = Object.values(fallbackData.default || fallbackData) as any[]
+      const fallbackResult = results[Math.floor(Math.random() * results.length)]
+      
+      return {
+        ...fallbackResult.score_result,
+        brand_id: brandId,
+        is_cached: true
+      }
+    } catch (fallbackError) {
+      console.error("Failed to load fallback data", fallbackError)
+      throw new Error('Failed to score content and fallback failed')
+    }
   }
-
-  return response.json()
 }
 
 export interface AgentTraceStep {
@@ -196,14 +224,31 @@ export async function getAgentTrace(
   contentId: string
 ): Promise<AgentTraceStep[]> {
   const API_BASE = 'http://localhost:8000'
-  const response = await fetch(`${API_BASE}/brands/${brandId}/trace/${contentId}`)
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to fetch agent trace')
+  
+  try {
+    const response = await fetch(`${API_BASE}/brands/${brandId}/trace/${contentId}`)
+    
+    if (!response.ok) {
+      throw new Error('API error')
+    }
+    
+    return await response.json()
+  } catch (error) {
+    console.warn("getAgentTrace failed, checking fallback data for contentId:", contentId)
+    try {
+      const fallbackData = await import('./fallback-results.json')
+      const results = Object.values(fallbackData.default || fallbackData) as any[]
+      const fallbackResult = results.find(r => r.score_result.content_id === contentId)
+      
+      if (fallbackResult) {
+        return fallbackResult.agent_trace
+      }
+    } catch (fallbackError) {
+      console.error("Failed to check fallback data", fallbackError)
+    }
+    
+    throw new Error('Failed to fetch agent trace')
   }
-
-  return response.json()
 }
 
 export interface DriftHistoryItem {

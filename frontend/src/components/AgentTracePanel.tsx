@@ -88,7 +88,7 @@ export default function AgentTracePanel({ brandId, contentId }: AgentTracePanelP
               </div>
               <span style={{ 
                 fontSize: '0.75rem', 
-                color: step.status === 'completed' ? '#4ade80' : 'rgba(247,241,232,0.5)' 
+                color: step.status === 'done' ? '#4ade80' : 'rgba(247,241,232,0.5)' 
               }}>
                 {step.status}
               </span>

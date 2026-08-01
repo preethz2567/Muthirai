@@ -1,248 +1,162 @@
-/**
- * Screen 01 — Landing (APP_FLOW.md §4)
- *
- * Full-viewport hero explaining the product thesis with:
- * - Animated Muthirai wordmark in Cinzel
- * - One-line product thesis
- * - 2×2 quadrant teaser grid with color-coded labels
- * - Gold "Get Started →" CTA → /setup
- */
 import { useNavigate } from 'react-router-dom'
-
-// ── Quadrant teaser data ──────────────────────────────────────────────────────
-
-const QUADRANTS = [
-  {
-    label: 'On Brand',
-    description: 'Consistent + distinctive — where you want to be',
-    bg: 'rgba(184,134,46,0.18)',
-    border: 'rgba(184,134,46,0.5)',
-    dot: '#B8862E',
-    corner: 'top-right',
-  },
-  {
-    label: 'Bold Off-Brand',
-    description: 'Distinctive but inconsistent — brave, risky',
-    bg: 'rgba(200,80,60,0.18)',
-    border: 'rgba(200,80,60,0.4)',
-    dot: '#C8503C',
-    corner: 'top-left',
-  },
-  {
-    label: 'Safe Generic',
-    description: 'Consistent but forgettable — blends in',
-    bg: 'rgba(120,160,100,0.15)',
-    border: 'rgba(120,160,100,0.35)',
-    dot: '#78A064',
-    corner: 'bottom-right',
-  },
-  {
-    label: 'Off Brand',
-    description: 'Neither consistent nor distinctive — drift',
-    bg: 'rgba(130,100,80,0.15)',
-    border: 'rgba(130,100,80,0.35)',
-    dot: '#826450',
-    corner: 'bottom-left',
-  },
-]
-
-// ── Component ─────────────────────────────────────────────────────────────────
+import { motion } from 'framer-motion'
+import SealLogo from '../components/SealLogo'
+import QuadrantChart from '../components/QuadrantChart'
+import ParticleSealCanvas from '../components/ParticleSealCanvas'
 
 export default function LandingPage() {
   const navigate = useNavigate()
 
+  // Stagger variants for the hero content
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  }
+
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{
-        background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 40%, #3A1000 100%)',
-      }}
-    >
+    <div className="flex flex-col min-h-screen bg-[#141110] text-(--color-parchment) font-sans selection:bg-(--color-gold) selection:text-[#141110]">
+      
       {/* ── Nav bar ── */}
-      <nav className="flex items-center justify-between px-8 py-5">
-        <div className="flex items-center gap-2">
-          <span
-            className="w-7 h-7 rounded flex items-center justify-center text-sm font-bold"
-            style={{ background: 'linear-gradient(135deg, #B8862E, #D4A44A)', color: '#1C1008' }}
-          >
-            M
-          </span>
-          <span
-            className="text-base font-semibold tracking-widest uppercase"
-            style={{ fontFamily: 'Cinzel, serif', color: '#E8C87A' }}
-          >
+      <nav className="flex items-center justify-between px-8 py-4 bg-(--color-parchment) border-b border-[rgba(184,134,46,0.3)] sticky top-0 z-50 text-(--color-ink)">
+        <div className="flex items-center gap-3">
+          <SealLogo size="small" className="text-(--color-maroon)" />
+          <span className="text-xl font-serif font-bold tracking-widest uppercase text-(--color-maroon)">
             Muthirai
           </span>
         </div>
-        <a
-          href="http://localhost:8000/docs"
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs font-medium"
-          style={{ color: 'rgba(247,241,232,0.45)', textDecoration: 'none' }}
-        >
-          API Docs ↗
-        </a>
+        <div className="flex items-center gap-6">
+          <button className="text-sm font-semibold hover:text-(--color-maroon) transition-colors">
+            Sign In
+          </button>
+          <button
+            onClick={() => navigate('/setup')}
+            className="text-sm font-bold bg-(--color-maroon) text-(--color-parchment) px-5 py-2 rounded transition-transform hover:-translate-y-[1px] hover:shadow-md"
+          >
+            Get Started
+          </button>
+        </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16 gap-14">
+      {/* ── Hero Section ── */}
+      <main className="relative min-h-[calc(100vh-73px)] flex flex-col justify-center items-center lg:items-start lg:pl-[10%] px-6 py-20 overflow-hidden">
+        
+        {/* Canvas Background */}
+        <ParticleSealCanvas />
 
-        {/* Wordmark + tagline */}
-        <div className="text-center space-y-5 animate-fade-up">
-          {/* Decorative rule above */}
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div style={{ height: 1, width: 40, background: 'rgba(184,134,46,0.4)' }} />
-            <span
-              className="text-xs tracking-widest uppercase"
-              style={{ color: '#B8862E', fontFamily: 'Cinzel, serif' }}
-            >
-              Brand Intelligence
+        {/* Hero Content */}
+        <motion.div 
+          className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left max-w-2xl gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div variants={itemVariants}>
+            <span className="font-mono text-[10px] sm:text-xs font-bold tracking-widest text-(--color-gold) uppercase px-3 py-1.5 bg-white/5 rounded border border-(--color-gold)/30 backdrop-blur-sm">
+              Brand Intelligence Division
             </span>
-            <div style={{ height: 1, width: 40, background: 'rgba(184,134,46,0.4)' }} />
-          </div>
+          </motion.div>
 
-          <h1
-            className="shimmer-text"
-            style={{
-              fontFamily: 'Cinzel, serif',
-              fontSize: 'clamp(2.8rem, 8vw, 5.5rem)',
-              fontWeight: 700,
-              lineHeight: 1.05,
-              letterSpacing: '0.04em',
-            }}
+          <motion.h1 
+            variants={itemVariants}
+            className="font-serif text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-white"
           >
-            Muthirai
-          </h1>
+            Every Brand Has A <br className="hidden sm:block"/>
+            <em className="text-(--color-gold) italic font-serif">Seal.</em>
+          </motion.h1>
 
-          <p
-            className="max-w-xl mx-auto animate-fade-up animate-delay-1"
-            style={{
-              fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
-              color: 'rgba(247,241,232,0.75)',
-              lineHeight: 1.6,
-              fontWeight: 300,
-            }}
+          <motion.p 
+            variants={itemVariants}
+            className="text-lg sm:text-xl text-gray-400 font-sans leading-relaxed max-w-lg"
           >
-            Know when your content sounds like{' '}
-            <em style={{ color: '#E8C87A', fontStyle: 'normal', fontWeight: 500 }}>you</em>
-            {' '}— and when it doesn't.
-          </p>
+            Muthirai validates whether your AI-generated content still carries it.
+          </motion.p>
 
-          <p
-            className="max-w-md mx-auto text-sm animate-fade-up animate-delay-2"
-            style={{ color: 'rgba(247,241,232,0.45)', lineHeight: 1.7 }}
-          >
-            Two-axis AI scoring: Consistency against your brand voice, Distinctiveness
-            against the category noise. Every piece of content, placed instantly.
-          </p>
-        </div>
-
-        {/* Quadrant teaser */}
-        <div className="w-full max-w-lg animate-fade-up animate-delay-2">
-          {/* Axis labels */}
-          <div className="relative">
-            {/* Y-axis label */}
-            <div
-              className="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -rotate-90"
-              style={{
-                fontSize: '0.65rem',
-                color: 'rgba(247,241,232,0.35)',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
-                paddingRight: '0.5rem',
-              }}
+          <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-4">
+            <button
+              onClick={() => navigate('/setup')}
+              className="bg-(--color-gold) text-[#141110] px-8 py-3.5 rounded font-bold text-[1.05rem] hover:bg-(--color-gold)/90 transition-all shadow-[0_0_20px_rgba(184,134,46,0.3)] hover:shadow-[0_0_30px_rgba(184,134,46,0.5)]"
             >
-              Distinctiveness →
-            </div>
-
-            {/* Grid */}
-            <div className="grid grid-cols-2 gap-2">
-              {/* top-right: On Brand */}
-              <QuadrantCell q={QUADRANTS[0]} order={1} />
-              {/* top-left: Bold Off-Brand — show top-right visually, order matters for CSS grid */}
-              <QuadrantCell q={QUADRANTS[1]} order={0} />
-              {/* bottom-right: Safe Generic */}
-              <QuadrantCell q={QUADRANTS[2]} order={2} />
-              {/* bottom-left: Off Brand */}
-              <QuadrantCell q={QUADRANTS[3]} order={3} />
-            </div>
-
-            {/* X-axis label */}
-            <div
-              className="text-center mt-2"
-              style={{
-                fontSize: '0.65rem',
-                color: 'rgba(247,241,232,0.35)',
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-              }}
-            >
-              ← Consistency →
-            </div>
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="flex flex-col items-center gap-3 animate-fade-up animate-delay-3">
-          <button
-            id="get-started-btn"
-            className="btn-gold"
-            style={{ fontSize: '1rem', padding: '0.9rem 2.5rem', borderRadius: '8px' }}
-            onClick={() => navigate('/setup')}
-          >
-            Get Started →
-          </button>
-          <span style={{ fontSize: '0.75rem', color: 'rgba(247,241,232,0.35)' }}>
-            Takes about 60 seconds to set up your brand
-          </span>
-        </div>
+              Get Started
+            </button>
+            <button className="border border-white/30 text-white px-8 py-3.5 rounded font-semibold text-[1.05rem] hover:bg-white/10 transition-colors">
+              See How It Works
+            </button>
+          </motion.div>
+        </motion.div>
       </main>
 
-      {/* ── Footer ── */}
-      <footer
-        className="text-center py-4 text-xs"
-        style={{ color: 'rgba(247,241,232,0.2)' }}
-      >
-        Muthirai · Hackathon Build v0.1
-      </footer>
-    </div>
-  )
-}
-
-// ── Quadrant cell sub-component ───────────────────────────────────────────────
-
-function QuadrantCell({ q, order }: { q: typeof QUADRANTS[0]; order: number }) {
-  return (
-    <div
-      className="rounded-lg p-4 flex flex-col gap-2 transition-all duration-200 hover:scale-[1.02]"
-      style={{
-        background: q.bg,
-        border: `1px solid ${q.border}`,
-        animationDelay: `${0.3 + order * 0.08}s`,
-      }}
-    >
-      <div className="flex items-center gap-2">
-        <span
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ background: q.dot }}
-        />
-        <span
-          style={{
-            fontFamily: 'Cinzel, serif',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            color: '#F7F1E8',
-            letterSpacing: '0.04em',
-          }}
+      {/* ── Below Hero: Brand Console Preview ── */}
+      <section className="bg-(--color-parchment) text-(--color-ink) relative z-20 py-32 px-6">
+        <motion.div 
+          className="max-w-5xl mx-auto flex flex-col items-center gap-16"
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8 }}
         >
-          {q.label}
-        </span>
-      </div>
-      <p style={{ fontSize: '0.7rem', color: 'rgba(247,241,232,0.5)', lineHeight: 1.4 }}>
-        {q.description}
-      </p>
+          <div className="text-center max-w-2xl">
+            <h2 className="font-serif text-4xl font-bold mb-4">Precision Scoring Engine</h2>
+            <p className="text-gray-600">
+              Instantly plot any piece of content on the two axes of brand intelligence: 
+              Consistency to your voice, and Distinctiveness from the category norm.
+            </p>
+          </div>
+
+          <div className="w-full relative shadow-2xl rounded-xl border border-(--color-sandal) bg-(--color-parchment) overflow-hidden max-w-3xl">
+            {/* Header bar */}
+            <div className="bg-(--color-ink) text-(--color-parchment) flex items-center justify-between px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                </div>
+                <span className="font-mono text-xs ml-4 tracking-widest text-(--color-sandal) opacity-80">
+                  BRAND CONSOLE
+                </span>
+              </div>
+              <div className="flex gap-4 font-mono text-[10px] text-(--color-sandal) opacity-60">
+                <span className="text-(--color-parchment) opacity-100 border-b border-(--color-gold) pb-1">SCORING</span>
+                <span>TRAJECTORY</span>
+                <span>IDENTITY</span>
+              </div>
+            </div>
+
+            {/* Content area */}
+            <div className="p-6 md:p-8 bg-white/50 flex flex-col gap-8">
+              <div className="h-[300px] w-full border border-(--color-sandal) rounded-lg bg-white p-2">
+                <QuadrantChart 
+                  contentScore={{ x: 0.82, y: 0.74 }}
+                  targetScore={{ x: 0.90, y: 0.85 }} 
+                />
+              </div>
+
+              {/* Data readouts */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-(--color-ink) rounded-md p-5 flex flex-col">
+                  <span className="font-mono text-xs text-(--color-sandal) mb-2 opacity-80 tracking-wider">CONSISTENCY</span>
+                  <span className="font-mono text-3xl text-green-400 font-bold">0.82</span>
+                </div>
+                <div className="bg-(--color-ink) rounded-md p-5 flex flex-col">
+                  <span className="font-mono text-xs text-(--color-sandal) mb-2 opacity-80 tracking-wider">DISTINCTIVENESS</span>
+                  <span className="font-mono text-3xl text-(--color-gold) font-bold">0.74</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
     </div>
   )
 }

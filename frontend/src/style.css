@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  --color-maroon: #7A1F2B;
+  --color-ink: #1A1A1A;
+  --color-sandal: #E4C9A0;
+  --color-parchment: #F7F1E8;
+  --color-gold: #B8862E;
+
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
 @layer base {
   :root {
     /* ── Brand palette ─────────────────────────────── */

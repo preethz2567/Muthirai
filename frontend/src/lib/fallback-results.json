@@ -1,0 +1,214 @@
+[
+  {
+    "target_quadrant": "safe_generic",
+    "actual_quadrant": "safe_generic",
+    "score_result": {
+      "id": "23283b9f-a9bd-4b82-a082-b2f212baa39a",
+      "content_id": "38623f21-43c4-4aa0-b3c8-29b5c4cb161c",
+      "consistency_score": 0.8,
+      "distinctiveness_score": 0.2,
+      "quadrant": "safe_generic",
+      "scored_at": "2026-08-01T12:46:35.452388",
+      "flagged_phrases": [],
+      "suggested_rewrite": "[safe_generic] Nike is a brand that focuses on athletic performance. Elevate your workflow with our cutting-edge solutions."
+    },
+    "agent_trace": [
+      {
+        "id": "efdd6a30-e9ea-4374-bab7-66f9e5aad26c",
+        "agent_name": "embedding",
+        "input_snippet": "[safe_generic] Nike is a brand that focuses on athletic performance. Elevate your workflow with our cutting-edge solutio\u2026",
+        "output_snippet": "Embedded 123 chars \u2192 384-dim vector (all-MiniLM-L6-v2)",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:35.454719",
+        "completed_at": "2026-08-01T12:46:35.454719"
+      },
+      {
+        "id": "df353f8f-cef7-4572-9953-8346be2606fc",
+        "agent_name": "scoring",
+        "input_snippet": "brand_id=92040ae2-2a73-40f1-8316-04d379666dc8",
+        "output_snippet": "consistency=0.80, distinctiveness=0.20, quadrant=safe_generic",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:35.454719",
+        "completed_at": "2026-08-01T12:46:35.454719"
+      },
+      {
+        "id": "f6ee7a20-2f16-4682-9c04-b6f645f6b2db",
+        "agent_name": "critic",
+        "input_snippet": "[safe_generic] Nike is a brand that focuses on athletic performance. Elevate your workflow with our cutting-edge solutio\u2026",
+        "output_snippet": "Flagged 0 phrase(s): ",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:35.454719",
+        "completed_at": "2026-08-01T12:46:35.454719"
+      },
+      {
+        "id": "0f707a7d-c78e-45d9-8f2e-be147881f08e",
+        "agent_name": "suggestion",
+        "input_snippet": "Rewriting 0 flagged span(s)",
+        "output_snippet": "[safe_generic] Nike is a brand that focuses on athletic performance. Elevate your workflow with our cutting-edge solutio\u2026",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:35.454719",
+        "completed_at": "2026-08-01T12:46:35.454719"
+      }
+    ],
+    "original_text": "[safe_generic] Nike is a brand that focuses on athletic performance. Elevate your workflow with our cutting-edge solutions."
+  },
+  {
+    "target_quadrant": "bold_off_brand",
+    "actual_quadrant": "bold_off_brand",
+    "score_result": {
+      "id": "457d4037-9bb5-4138-be15-2cfeb7cfb12a",
+      "content_id": "2b9a417c-d3a9-43dd-a357-8d62c3b29feb",
+      "consistency_score": 0.2,
+      "distinctiveness_score": 0.8,
+      "quadrant": "bold_off_brand",
+      "scored_at": "2026-08-01T12:46:36.068759",
+      "flagged_phrases": [],
+      "suggested_rewrite": "[bold_off_brand] Our chaotic energy will literally explode your mind! No cap, it's wild out here in the forest."
+    },
+    "agent_trace": [
+      {
+        "id": "e086c50c-7955-41ad-98ef-4aa1f68c5ded",
+        "agent_name": "embedding",
+        "input_snippet": "[bold_off_brand] Our chaotic energy will literally explode your mind! No cap, it's wild out here in the forest.",
+        "output_snippet": "Embedded 111 chars \u2192 384-dim vector (all-MiniLM-L6-v2)",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.069266",
+        "completed_at": "2026-08-01T12:46:36.069266"
+      },
+      {
+        "id": "b61a0732-00d4-48cc-80bf-0aad62b32505",
+        "agent_name": "scoring",
+        "input_snippet": "brand_id=92040ae2-2a73-40f1-8316-04d379666dc8",
+        "output_snippet": "consistency=0.20, distinctiveness=0.80, quadrant=bold_off_brand",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.069266",
+        "completed_at": "2026-08-01T12:46:36.069266"
+      },
+      {
+        "id": "e2c6561e-295e-42af-b380-0407ac11c8fe",
+        "agent_name": "critic",
+        "input_snippet": "[bold_off_brand] Our chaotic energy will literally explode your mind! No cap, it's wild out here in the forest.",
+        "output_snippet": "Flagged 0 phrase(s): ",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.069266",
+        "completed_at": "2026-08-01T12:46:36.069266"
+      },
+      {
+        "id": "0658a166-eaf0-4b8a-8e53-7f0936861833",
+        "agent_name": "suggestion",
+        "input_snippet": "Rewriting 0 flagged span(s)",
+        "output_snippet": "[bold_off_brand] Our chaotic energy will literally explode your mind! No cap, it's wild out here in the forest.",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.069266",
+        "completed_at": "2026-08-01T12:46:36.069266"
+      }
+    ],
+    "original_text": "[bold_off_brand] Our chaotic energy will literally explode your mind! No cap, it's wild out here in the forest."
+  },
+  {
+    "target_quadrant": "off_brand",
+    "actual_quadrant": "off_brand",
+    "score_result": {
+      "id": "c3788d2b-9a35-4a27-beb6-5bafa36e934e",
+      "content_id": "abdb1bd8-ae4d-4cda-8b90-cd1aef3d00f8",
+      "consistency_score": 0.2,
+      "distinctiveness_score": 0.2,
+      "quadrant": "off_brand",
+      "scored_at": "2026-08-01T12:46:36.643687",
+      "flagged_phrases": [],
+      "suggested_rewrite": "[off_brand] Elevate your workflow with our cutting-edge solutions. Best-in-class platform for modern teams."
+    },
+    "agent_trace": [
+      {
+        "id": "6baab960-a314-4ba5-9894-35e8deedcb15",
+        "agent_name": "embedding",
+        "input_snippet": "[off_brand] Elevate your workflow with our cutting-edge solutions. Best-in-class platform for modern teams.",
+        "output_snippet": "Embedded 107 chars \u2192 384-dim vector (all-MiniLM-L6-v2)",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.644734",
+        "completed_at": "2026-08-01T12:46:36.644734"
+      },
+      {
+        "id": "c408eac5-4fc0-4362-8441-003e003c4551",
+        "agent_name": "scoring",
+        "input_snippet": "brand_id=92040ae2-2a73-40f1-8316-04d379666dc8",
+        "output_snippet": "consistency=0.20, distinctiveness=0.20, quadrant=off_brand",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.644734",
+        "completed_at": "2026-08-01T12:46:36.644734"
+      },
+      {
+        "id": "84016783-bdf7-4e73-8c3a-9b85eed06ede",
+        "agent_name": "critic",
+        "input_snippet": "[off_brand] Elevate your workflow with our cutting-edge solutions. Best-in-class platform for modern teams.",
+        "output_snippet": "Flagged 0 phrase(s): ",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.644734",
+        "completed_at": "2026-08-01T12:46:36.644734"
+      },
+      {
+        "id": "aa8be7a9-79dd-469f-9382-a9757a80ecb5",
+        "agent_name": "suggestion",
+        "input_snippet": "Rewriting 0 flagged span(s)",
+        "output_snippet": "[off_brand] Elevate your workflow with our cutting-edge solutions. Best-in-class platform for modern teams.",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:36.644734",
+        "completed_at": "2026-08-01T12:46:36.644734"
+      }
+    ],
+    "original_text": "[off_brand] Elevate your workflow with our cutting-edge solutions. Best-in-class platform for modern teams."
+  },
+  {
+    "target_quadrant": "on_brand",
+    "actual_quadrant": "on_brand",
+    "score_result": {
+      "id": "10253880-7258-48a3-8649-d2155835c447",
+      "content_id": "8ac42d8e-f68b-4c4d-a933-ac5ec181d394",
+      "consistency_score": 0.8,
+      "distinctiveness_score": 0.8,
+      "quadrant": "on_brand",
+      "scored_at": "2026-08-01T12:46:37.302335",
+      "flagged_phrases": [],
+      "suggested_rewrite": "[on_brand] Push your limits. Every run is a chance to break boundaries and find your true athletic potential. Just do it."
+    },
+    "agent_trace": [
+      {
+        "id": "7e6016b4-0def-46ed-af04-501d8f72257c",
+        "agent_name": "embedding",
+        "input_snippet": "[on_brand] Push your limits. Every run is a chance to break boundaries and find your true athletic potential. Just do it\u2026",
+        "output_snippet": "Embedded 121 chars \u2192 384-dim vector (all-MiniLM-L6-v2)",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:37.303283",
+        "completed_at": "2026-08-01T12:46:37.303283"
+      },
+      {
+        "id": "4a655954-a72a-469e-8aa3-a0aff19cc299",
+        "agent_name": "scoring",
+        "input_snippet": "brand_id=92040ae2-2a73-40f1-8316-04d379666dc8",
+        "output_snippet": "consistency=0.80, distinctiveness=0.80, quadrant=on_brand",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:37.303283",
+        "completed_at": "2026-08-01T12:46:37.303283"
+      },
+      {
+        "id": "22cd9752-3940-40d8-87e6-40daf7dace77",
+        "agent_name": "critic",
+        "input_snippet": "[on_brand] Push your limits. Every run is a chance to break boundaries and find your true athletic potential. Just do it\u2026",
+        "output_snippet": "Flagged 0 phrase(s): ",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:37.303283",
+        "completed_at": "2026-08-01T12:46:37.303283"
+      },
+      {
+        "id": "6445d3de-53d3-4a34-9e95-81bb0aaade71",
+        "agent_name": "suggestion",
+        "input_snippet": "Rewriting 0 flagged span(s)",
+        "output_snippet": "[on_brand] Push your limits. Every run is a chance to break boundaries and find your true athletic potential. Just do it\u2026",
+        "status": "done",
+        "started_at": "2026-08-01T12:46:37.303283",
+        "completed_at": "2026-08-01T12:46:37.303283"
+      }
+    ],
+    "original_text": "[on_brand] Push your limits. Every run is a chance to break boundaries and find your true athletic potential. Just do it."
+  }
+]

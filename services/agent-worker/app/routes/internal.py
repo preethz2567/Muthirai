@@ -183,8 +183,8 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
             generic_sims.append(float(dists[0][0]))
 
     if generic_sims:
-        mean_generic_sim = float(np.mean(generic_sims))
-        distinctiveness_score = float(np.clip(1.0 - mean_generic_sim, 0.0, 1.0))
+        max_generic_sim = float(np.max(generic_sims))
+        distinctiveness_score = float(np.clip(1.0 - max_generic_sim, 0.0, 1.0))
     else:
         # No generic centroids seeded yet — assume maximally distinctive
         distinctiveness_score = 1.0

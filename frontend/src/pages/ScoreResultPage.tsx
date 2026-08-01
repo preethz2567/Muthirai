@@ -41,6 +41,19 @@ export default function ScoreResultPage() {
       <div style={{ maxWidth: 1000, width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
+            {result.is_cached && (
+              <div style={{
+                background: 'rgba(184, 134, 46, 0.1)',
+                border: '1px solid #B8862E',
+                color: '#E8C87A',
+                padding: '0.75rem 1rem',
+                borderRadius: 4,
+                marginBottom: '1rem',
+                fontSize: '0.875rem'
+              }}>
+                <strong>Notice:</strong> The scoring service is currently unavailable or timed out. Showing a cached demo result.
+              </div>
+            )}
             <h1 style={{ fontFamily: 'Cinzel, serif', fontSize: '2.5rem', margin: 0, color: '#E8C87A' }}>
               Score Results
             </h1>
