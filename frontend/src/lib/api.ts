@@ -42,103 +42,98 @@ export interface TrajectoryChatResponse {
 }
 
 
-// ── Fixture data ──────────────────────────────────────────────────────────────
 
-const FIXTURE_CARD: BrandIdentityCard = {
-  brand_id: 'mock-brand-001',
-  brand_name: 'Muthirai Demo Brand',
-  tone_words: ['confident', 'warm', 'precise', 'editorial'],
-  vocabulary: [
-    'the seal of authenticity',
-    'built for the long game',
-    'unmistakably ours',
-    'earned, not borrowed',
-  ],
-  banned_generic_phrases: [
-    'cutting-edge',
-    'seamless experience',
-    'best-in-class',
-    'innovative solution',
-    'leverage synergies',
-    'disruptive',
-  ],
-  core_values: ['authenticity', 'craft', 'accountability', 'restraint'],
-  visual_tokens: {
-    primary_colors: ['#7A1F2B', '#B8862E', '#F7F1E8'],
-    style_descriptors: ['minimal', 'high-contrast', 'editorial', 'refined'],
-  },
-  source_urls: [],
-  created_at: new Date().toISOString(),
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function delay(ms: number) {
-  return new Promise<void>(resolve => setTimeout(resolve, ms))
-}
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-/**
- * POST /brands (mock)
- * Simulates ingestion agent running for ~2.5 s, then returns a fixture card.
- */
 export async function createBrand(
   name: string,
-  _sourceText: string,
+  sourceText: string,
 ): Promise<BrandIdentityCard> {
-  await delay(2500)
-  return {
-    ...FIXTURE_CARD,
-    brand_id: `brand-${Date.now()}`,
-    brand_name: name || FIXTURE_CARD.brand_name,
-    created_at: new Date().toISOString(),
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, source_text: sourceText, source_urls: [] })
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to create brand')
   }
+
+  const brandOut = await response.json()
+  return brandOut.identity_card
 }
 
-/**
- * PATCH /brands/:id (mock)
- * Simulates a quick DB write, returns the updated card.
- */
 export async function updateBrand(
-  _id: string,
+  id: string,
   card: BrandIdentityCard,
 ): Promise<BrandIdentityCard> {
-  await delay(500)
-  return { ...card }
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      tone_words: card.tone_words,
+      vocabulary: card.vocabulary,
+      banned_generic_phrases: card.banned_generic_phrases,
+      core_values: card.core_values,
+      visual_tokens: card.visual_tokens,
+    })
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to update brand')
+  }
+
+  const brandOut = await response.json()
+  return brandOut.identity_card
 }
 
-/**
- * POST /brands/:id/trajectory/chat (mock)
- * Simulates a response from the Trajectory Agent.
- */
 export async function chatTrajectory(
-  _id: string,
+  id: string,
   history: ChatMessage[],
 ): Promise<TrajectoryChatResponse> {
-  await delay(1500) // simulate LLM latency
-  const lastMessage = history[history.length - 1]?.content || ''
-  
-  return {
-    response_message: `Got it. You want to shift towards: "${lastMessage}". I've updated the target identity card to reflect a more rebellious and distinct tone.`,
-    target_card: {
-      tone_words: ['rebellious', 'bold', 'unapologetic'],
-      vocabulary: ['disrupt the norm', 'no compromises', 'rewrite the rules'],
-      core_values: ['courage', 'authenticity', 'defiance'],
-    }
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands/${id}/trajectory/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_history: history })
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to chat with trajectory agent')
   }
+
+  return response.json()
 }
 
-/**
- * POST /brands/:id/trajectory/confirm (mock)
- */
 export async function confirmTrajectory(
-  _id: string,
-  _targetCard: TargetCard,
-  _history: ChatMessage[],
+  id: string,
+  targetCard: TargetCard,
+  history: ChatMessage[],
 ): Promise<{ status: string }> {
-  await delay(500)
-  return { status: 'active' }
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands/${id}/trajectory/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_transcript: history,
+      target_tone_words: targetCard.tone_words,
+      target_vocabulary: targetCard.vocabulary,
+      target_core_values: targetCard.core_values,
+    })
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to confirm trajectory')
+  }
+
+  return response.json()
 }
 
 export interface FlaggedPhrase {
@@ -196,10 +191,6 @@ export interface AgentTraceStep {
   completed_at: string | null
 }
 
-/**
- * GET /brands/:id/trace/:content_id (REAL API)
- * Fetches the ordered agent trace steps for a specific content item.
- */
 export async function getAgentTrace(
   brandId: string,
   contentId: string
@@ -210,6 +201,28 @@ export async function getAgentTrace(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.detail || 'Failed to fetch agent trace')
+  }
+
+  return response.json()
+}
+
+export interface DriftHistoryItem {
+  scored_at: string
+  consistency_score: number
+  distinctiveness_score: number
+  quadrant: string
+  content_id: string
+}
+
+export async function getBrandHistory(
+  brandId: string
+): Promise<DriftHistoryItem[]> {
+  const API_BASE = 'http://localhost:8000'
+  const response = await fetch(`${API_BASE}/brands/${brandId}/history`)
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to fetch drift history')
   }
 
   return response.json()

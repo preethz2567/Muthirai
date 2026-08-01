@@ -9,6 +9,7 @@
  *   *                        → Redirect to /
  */
 import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import LandingPage       from './pages/LandingPage.tsx'
 import BrandSetupPage    from './pages/BrandSetupPage.tsx'
 import IdentityCardPage  from './pages/IdentityCardPage.tsx'
@@ -16,6 +17,7 @@ import CompassModePage   from './pages/CompassModePage.tsx'
 import ScoreContentPage  from './pages/ScoreContentPage.tsx'
 import ScoreResultPage   from './pages/ScoreResultPage.tsx'
 import QuadrantChart     from './components/QuadrantChart.tsx'
+import { getBrandHistory, type DriftHistoryItem } from './lib/api.ts'
 
 
 // ── Dashboard & Results stubs ────────────────────────────────────────────────
@@ -25,6 +27,14 @@ function DashboardStub() {
   const { id } = useParams()
   const location = useLocation()
   
+  const [history, setHistory] = useState<DriftHistoryItem[]>([])
+
+  useEffect(() => {
+    if (id && id !== 'draft') {
+      getBrandHistory(id).then(setHistory).catch(console.error)
+    }
+  }, [id])
+
   // Simulated state for demonstration of Prompt 9 requirement
   const hasTrajectory = (location.state as any)?.hasTrajectory
 
@@ -51,15 +61,11 @@ function DashboardStub() {
           maxWidth: 420,
         }}
       >
-        <p style={{ color: '#E8C87A', fontSize: '0.75rem', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '0.75rem', fontFamily: 'Cinzel, serif' }}>
-          Coming in Prompt 6
-        </p>
         <h2 style={{ color: '#F7F1E8', fontSize: '1.6rem', fontFamily: 'Cinzel, serif', fontWeight: 700, marginBottom: '0.75rem' }}>
           Brand Dashboard
         </h2>
         <p style={{ color: 'rgba(247,241,232,0.55)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-          Your brand profile has been saved. The full dashboard with recent scores,
-          drift sparkline, and scoring entry will be built in the next prompt.
+          Your brand profile has been saved.
         </p>
         <button
           onClick={() => navigate(`/brands/${id || 'draft'}/score`)}
@@ -92,6 +98,30 @@ function DashboardStub() {
         >
           Shift Brand Direction (Compass Mode)
         </button>
+      </div>
+
+      <div style={{ width: '100%', maxWidth: 600 }}>
+        <h3 style={{ color: '#F7F1E8', fontFamily: 'Cinzel, serif', marginBottom: '1rem', textAlign: 'center' }}>
+          Drift Dashboard (History)
+        </h3>
+        {history.length === 0 ? (
+          <p style={{ color: 'rgba(247,241,232,0.5)', textAlign: 'center' }}>No content scored yet.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {history.map((h, i) => (
+              <div key={i} style={{ background: 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: 8, display: 'flex', justifyContent: 'space-between', border: '1px solid rgba(184,134,46,0.3)' }}>
+                <div>
+                  <div style={{ color: '#E8C87A', fontWeight: 'bold' }}>{h.quadrant.replace(/_/g, ' ')}</div>
+                  <div style={{ color: 'rgba(247,241,232,0.5)', fontSize: '0.8rem' }}>{new Date(h.scored_at).toLocaleString()}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ color: '#F7F1E8' }}>Consistency: {(h.consistency_score * 100).toFixed(0)}%</div>
+                  <div style={{ color: '#F7F1E8' }}>Distinctiveness: {(h.distinctiveness_score * 100).toFixed(0)}%</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {hasTrajectory && (
