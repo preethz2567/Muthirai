@@ -50,38 +50,13 @@ class ScoreRequest(BaseModel):
     description=(
         "Ingestion Agent endpoint. Receives raw source text and returns a structured "
         "Brand Identity Card (TRD section 4.1). "
-        "Currently returns realistic fixture data — real LLM extraction wired in next."
+        "Uses the LLM client to parse the text. On failure, returns a fallback fixture."
     ),
 )
 async def ingest(payload: IngestRequest) -> BrandIdentityCard:
-    """
-    Fixture: returns a realistic Brand Identity Card regardless of input.
-    The shape is contractually correct — api can parse and persist this immediately.
-    """
-    return BrandIdentityCard(
-        brand_id=str(uuid.uuid4()),
-        brand_name="Muthirai Demo Brand",
-        tone_words=["confident", "warm", "precise"],
-        vocabulary=[
-            "the seal of authenticity",
-            "built for the long game",
-            "unmistakably ours",
-        ],
-        banned_generic_phrases=[
-            "cutting-edge",
-            "seamless experience",
-            "best-in-class",
-            "innovative solution",
-            "leverage synergies",
-        ],
-        core_values=["authenticity", "craft", "accountability"],
-        visual_tokens=VisualTokens(
-            primary_colors=["#1A1A2E", "#E94560", "#F5F5F5"],
-            style_descriptors=["minimal", "high-contrast", "editorial"],
-        ),
-        source_urls=[],
-        created_at=datetime.now(timezone.utc),
-    )
+    from app.agents.ingestion_agent import extract_brand_identity
+    
+    return extract_brand_identity(payload.source_text)
 
 
 @router.post(
