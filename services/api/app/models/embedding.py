@@ -15,7 +15,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
 
-OWNER_TYPE_VALUES = ("brand_centroid", "generic_centroid", "content")
+OWNER_TYPE_VALUES = ("brand_centroid", "generic_centroid", "content", "brand_centroid_image", "generic_centroid_image", "content_image")
 
 
 def _now() -> datetime:

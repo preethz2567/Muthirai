@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from typing import List
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -200,6 +200,63 @@ async def create_brand(
     db.refresh(brand)
 
     return BrandOut.model_validate(brand)
+
+@router.post(
+    "/{brand_id}/reference-images",
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload brand reference images to form an image centroid",
+)
+async def upload_reference_images(
+    brand_id: str,
+    images: List[UploadFile] = File(...),
+    db: Session = Depends(get_db)
+):
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+    if brand is None:
+        raise HTTPException(status_code=404, detail="Brand not found.")
+
+    files = []
+    for f in images:
+        content = await f.read()
+        files.append(("files", (f.filename, content, f.content_type)))
+
+    owner_type = "brand_centroid_image"
+    faiss_owner = f"{owner_type}:{brand_id}"
+
+    try:
+        async with _worker_client() as client:
+            resp = await client.post(
+                "/internal/embed-image-centroid",
+                params={"owner": faiss_owner},
+                files=files
+            )
+    except (httpx.ConnectError, httpx.TimeoutException) as exc:
+        _handle_worker_error(exc, "embed-image-centroid")
+
+    if resp.status_code != 200:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"agent-worker returned {resp.status_code}: {resp.text}",
+        )
+
+    embed_data = resp.json()
+
+    # Clear old brand image centroid if it exists
+    db.query(Embedding).filter(Embedding.owner_id == brand_id, Embedding.owner_type == owner_type).delete()
+
+    embedding_record = Embedding(
+        id=str(uuid.uuid4()),
+        owner_type=owner_type,
+        owner_id=brand_id,
+        vector_ref=embed_data["vector_ref"],
+        model_name=embed_data["model_name"],
+        dimension=embed_data["dimension"],
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(embedding_record)
+    db.commit()
+
+    return {"status": "success", "vector_ref": faiss_owner}
 
 
 

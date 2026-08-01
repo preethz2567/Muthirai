@@ -39,6 +39,8 @@ services:
       - "8001:8001"
     env_file:
       - ./services/agent-worker/.env
+    environment:
+      - FAISS_INDEX_DIR=/app/db-data/indexes
     volumes:
       - ./services/agent-worker/indexes:/app/indexes
       - api-db:/app/db-data

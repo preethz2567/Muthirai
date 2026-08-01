@@ -43,7 +43,7 @@ INDEX_DIR.mkdir(parents=True, exist_ok=True)
 def _sanitize_owner(owner: str) -> str:
     return owner.replace(":", "_").replace("/", "_")
 
-def _get_or_create(owner: str) -> faiss.IndexFlatIP:
+def _get_or_create(owner: str, dim: int) -> faiss.IndexFlatIP:
     """Return the existing index for `owner`, load from disk if present, or create a new one."""
     if owner not in _indexes:
         file_path = INDEX_DIR / f"{_sanitize_owner(owner)}.bin"
@@ -51,7 +51,7 @@ def _get_or_create(owner: str) -> faiss.IndexFlatIP:
             _indexes[owner] = faiss.read_index(str(file_path))
             logger.debug("Loaded FAISS index for owner '%s' from disk", owner)
         else:
-            _indexes[owner] = faiss.IndexFlatIP(EMBEDDING_DIM)
+            _indexes[owner] = faiss.IndexFlatIP(dim)
             logger.debug("Created FAISS index for owner '%s'", owner)
     return _indexes[owner]
 
@@ -70,9 +70,10 @@ def add_vectors(owner: str, vectors: np.ndarray) -> None:
 
     Args:
         owner:   Arbitrary string key (e.g. "brand:abc", "generic:saas").
-        vectors: np.ndarray of shape (N, EMBEDDING_DIM), dtype float32.
+        vectors: np.ndarray of shape (N, D), dtype float32.
     """
-    idx = _get_or_create(owner)
+    dim = vectors.shape[1]
+    idx = _get_or_create(owner, dim)
     idx.add(vectors)
     _save_index(owner)
     logger.debug("Added %d vector(s) to index '%s' (total: %d)", len(vectors), owner, idx.ntotal)
@@ -91,7 +92,8 @@ def search_nearest(owner: str, query: np.ndarray, k: int = 5):
         (distances, indices) — FAISS standard output.
         distances are inner-product scores (= cosine similarity for normalised vecs).
     """
-    idx = _get_or_create(owner)
+    dim = query.shape[-1] if len(query.shape) > 0 else EMBEDDING_DIM
+    idx = _get_or_create(owner, dim)
     if idx.ntotal == 0:
         return np.array([[]], dtype=np.float32), np.array([[]], dtype=np.int64)
 

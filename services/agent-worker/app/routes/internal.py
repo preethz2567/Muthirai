@@ -12,7 +12,7 @@ will be wired in subsequent prompts without changing the response contracts.
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 
 from app.schemas.brand_identity_card import BrandIdentityCard, VisualTokens
 from app.schemas.content_score_result import ContentScoreResult, FlaggedPhrase
@@ -114,6 +114,34 @@ async def embed_text(payload: EmbedRequest) -> EmbedResponse:
         model_name="all-MiniLM-L6-v2"
     )
 
+@router.post(
+    "/embed-image-centroid",
+    response_model=EmbedResponse,
+    summary="Compute and persist an image centroid to FAISS",
+)
+async def embed_image_centroid(owner: str, files: List[UploadFile] = File(...)) -> EmbedResponse:
+    from app.scoring.image_embedder import compute_image_centroid, EMBEDDING_DIM as IMG_DIM
+    from app.scoring.vector_store import add_vectors
+
+    # Read all files to bytes
+    images_bytes = []
+    for f in files:
+        images_bytes.append(await f.read())
+
+    # Generate single centroid vector, shape (1, D)
+    vec = compute_image_centroid(images_bytes)
+    import numpy as np
+    vec_2d = np.array([vec], dtype=np.float32)
+    
+    # Store in FAISS
+    add_vectors(owner, vec_2d)
+
+    return EmbedResponse(
+        vector_ref=owner,
+        dimension=IMG_DIM,
+        model_name="clip-vit-base-patch32"
+    )
+
 
 
 
@@ -164,14 +192,17 @@ async def score(payload: ScoreRequest) -> ContentScoreResult:
 
     # ── 3. Distinctiveness — 1 – cosine sim vs generic centroid ──────────────
     # Aggregate all generic_centroid:* owners into a mean generic centroid.
+    # We must exclude image centroids (generic_centroid_image:*) since they have different dimensionality (512 vs 384).
     all_owners = list_owners()
-    generic_owners = [o for o in all_owners if o.startswith("generic_centroid:")]
+    generic_owners = [o for o in all_owners if o.startswith("generic_centroid:") and not o.startswith("generic_centroid_image")]
 
     # Also check disk-persisted indexes for any generic_centroid keys not yet
     # loaded in-memory (the store lazy-loads on first access, so one search
     # per key is enough to trigger the load).
     from app.scoring.vector_store import INDEX_DIR, _sanitize_owner
     for fpath in INDEX_DIR.glob("generic_centroid_*.bin"):
+        if fpath.stem.startswith("generic_centroid_image"):
+            continue
         key = fpath.stem.replace("generic_centroid_", "generic_centroid:", 1)
         if key not in all_owners:
             generic_owners.append(key)
