@@ -225,7 +225,7 @@ async def score(
     max_generic_sim = float(np.max(generic_sims))
     distinctiveness_score = float(np.clip(1.0 - max_generic_sim, 0.0, 1.0))
 
-    THRESHOLD = 0.40
+    THRESHOLD = 0.50
     high_consistency   = consistency_score   >= THRESHOLD
     high_distinctiveness = distinctiveness_score >= THRESHOLD
 

@@ -34,15 +34,15 @@ export default function AgentTracePanel({ brandId, contentId }: AgentTracePanelP
   }, [brandId, contentId])
 
   if (loading) {
-    return <div style={{ color: 'rgba(247,241,232,0.7)', fontSize: '0.9rem', fontStyle: 'italic' }}>Retrieving agent traces...</div>
+    return <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', fontStyle: 'italic' }}>Retrieving agent traces...</div>
   }
 
   if (error) {
-    return <div style={{ color: '#ff6b6b', fontSize: '0.9rem' }}>Error: {error}</div>
+    return <div style={{ color: 'var(--danger)', fontSize: '0.9rem' }}>Error: {error}</div>
   }
 
   if (steps.length === 0) {
-    return <div style={{ color: 'rgba(247,241,232,0.7)', fontSize: '0.9rem' }}>No trace steps found.</div>
+    return <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>No trace steps found.</div>
   }
 
   return (
@@ -51,8 +51,8 @@ export default function AgentTracePanel({ brandId, contentId }: AgentTracePanelP
         const isExpanded = expandedStepId === step.id
         return (
           <div key={step.id} style={{
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid rgba(184,134,46,0.3)',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
             borderRadius: 6,
             overflow: 'hidden',
           }}>
@@ -64,17 +64,17 @@ export default function AgentTracePanel({ brandId, contentId }: AgentTracePanelP
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '0.75rem 1rem',
-                background: isExpanded ? 'rgba(184,134,46,0.1)' : 'transparent',
+                background: isExpanded ? 'var(--color-surface-hover)' : 'transparent',
                 border: 'none',
-                color: '#F7F1E8',
+                color: 'var(--color-text-primary)',
                 cursor: 'pointer',
                 textAlign: 'left',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ 
-                  background: '#B8862E', 
-                  color: '#1A050A', 
+                  background: 'var(--color-maroon)', 
+                  color: '#FFFFFF', 
                   fontWeight: 700, 
                   fontSize: '0.75rem',
                   padding: '0.1rem 0.4rem', 
@@ -88,23 +88,23 @@ export default function AgentTracePanel({ brandId, contentId }: AgentTracePanelP
               </div>
               <span style={{ 
                 fontSize: '0.75rem', 
-                color: step.status === 'done' ? '#4ade80' : 'rgba(247,241,232,0.5)' 
+                color: step.status === 'done' ? 'var(--success)' : 'var(--color-text-muted)' 
               }}>
                 {step.status}
               </span>
             </button>
             
             {isExpanded && (
-              <div style={{ padding: '1rem', borderTop: '1px solid rgba(184,134,46,0.2)', fontSize: '0.875rem' }}>
+              <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)', fontSize: '0.875rem' }}>
                 <div style={{ marginBottom: '1rem' }}>
-                  <strong style={{ color: '#E8C87A', display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase' }}>Input Snippet</strong>
-                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: 4, fontFamily: 'var(--font-mono)', opacity: 0.9 }}>
+                  <strong style={{ color: 'var(--color-text-primary)', display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase' }}>Input Snippet</strong>
+                  <div style={{ background: 'var(--color-bg)', padding: '0.5rem', borderRadius: 4, fontFamily: 'var(--font-mono)', opacity: 0.9 }}>
                     {step.input_snippet || 'No input'}
                   </div>
                 </div>
                 <div>
-                  <strong style={{ color: '#E8C87A', display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase' }}>Output Snippet</strong>
-                  <div style={{ background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: 4, fontFamily: 'var(--font-mono)', opacity: 0.9 }}>
+                  <strong style={{ color: 'var(--color-text-primary)', display: 'block', marginBottom: '0.25rem', fontSize: '0.75rem', textTransform: 'uppercase' }}>Output Snippet</strong>
+                  <div style={{ background: 'var(--color-bg)', padding: '0.5rem', borderRadius: 4, fontFamily: 'var(--font-mono)', opacity: 0.9 }}>
                     {step.output_snippet || 'No output'}
                   </div>
                 </div>

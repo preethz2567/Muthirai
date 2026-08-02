@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
-import { Outlet, NavLink, useParams } from 'react-router-dom'
-import { getBrand } from '../lib/api'
+import { useState, useEffect, useRef } from 'react'
+import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom'
+import { getBrand, getBrands, type BrandListOut } from '../lib/api'
+import VerificationSeal from './VerificationSeal'
 
 // Simple SVG Icons
 const IconDashboard = () => (
@@ -63,13 +64,41 @@ const IconHelp = () => (
 
 export default function AppShell() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const brandId = id || 'draft'
   
   const [brandName, setBrandName] = useState('Acme Corp')
+  const [brands, setBrands] = useState<BrandListOut[]>([])
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Sync click outside dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  // Fetch all brands
+  useEffect(() => {
+    let mounted = true
+    getBrands().then(data => {
+      if (mounted) setBrands(data)
+    }).catch(err => {
+      console.warn("Failed to load brands list", err)
+    })
+    return () => { mounted = false }
+  }, [])
 
   useEffect(() => {
     let mounted = true
     if (brandId && brandId !== 'draft') {
+      localStorage.setItem('muthirai_brand_id', brandId)
       getBrand(brandId).then(data => {
         if (mounted && data.name) {
           setBrandName(data.name)
@@ -81,6 +110,15 @@ export default function AppShell() {
     return () => { mounted = false }
   }, [brandId])
 
+  const handleBrandSwitch = (newBrandId: string) => {
+    setIsDropdownOpen(false)
+    if (newBrandId === brandId) return
+    localStorage.setItem('muthirai_brand_id', newBrandId)
+    // Replace the current brandId in the path with newBrandId
+    const newPath = location.pathname.replace(`/brands/${brandId}`, `/brands/${newBrandId}`)
+    navigate(newPath)
+  }
+
   const navItems = [
     { name: 'Dashboard', path: `/brands/${brandId}/dashboard`, icon: <IconDashboard /> },
     { name: 'Brand Identity', path: `/brands/${brandId}/review`, icon: <IconIdentity /> },
@@ -90,30 +128,23 @@ export default function AppShell() {
   ]
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', fontFamily: 'var(--font-sans)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--color-ink)', fontFamily: 'var(--font-sans)' }}>
       {/* Left Sidebar */}
-      <aside style={{
-        width: 260,
-        flexShrink: 0,
-        background: 'var(--sidebar-bg)',
-        color: '#FFFFFF',
-        display: 'flex',
-        flexDirection: 'column',
-        borderRight: '1px solid rgba(255,255,255,0.05)'
+      <aside style={{ 
+        width: '260px', 
+        background: 'var(--color-surface)', 
+        borderRight: '1px solid var(--color-border)', 
+        display: 'flex', 
+        flexDirection: 'column' 
       }}>
-        {/* Branding */}
-        <div style={{ padding: '2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-            <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>முத்திரை</span>
-            <span style={{ fontSize: '1rem', fontWeight: 600, letterSpacing: '0.05em' }}>MUTHIRAI</span>
-          </div>
-          <div style={{ fontSize: '0.7rem', fontWeight: 600, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>
-            ENTERPRISE VOICE
-          </div>
+        {/* Brand Header */}
+        <div style={{ padding: '1.25rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: '1px solid var(--color-border)' }}>
+          <VerificationSeal variant="nav" tone="brass" />
+          <span style={{ fontSize: '1rem', fontWeight: 600, fontFamily: 'var(--font-display)', letterSpacing: '-0.01em', color: 'var(--color-text-primary)' }}>Muthirai</span>
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '1.5rem 0' }}>
+        <nav style={{ flex: 1, padding: '1rem 0.5rem' }}>
           {navItems.map((item) => (
             <NavLink
               key={item.name}
@@ -122,15 +153,29 @@ export default function AppShell() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                padding: '0.75rem 1.5rem',
-                fontSize: '0.9rem',
-                fontWeight: isActive ? 600 : 500,
-                color: isActive ? '#FFFFFF' : 'rgba(255,255,255,0.6)',
+                padding: '0.55rem 1rem',
+                fontSize: '0.85rem',
+                borderRadius: '2px',
                 textDecoration: 'none',
-                borderLeft: `3px solid ${isActive ? 'var(--maroon)' : 'transparent'}`,
-                background: isActive ? 'rgba(255,255,255,0.03)' : 'transparent',
-                transition: 'all 0.15s ease',
+                background: isActive ? 'var(--color-surface-raised)' : 'transparent',
+                color: isActive ? 'var(--color-brass)' : 'var(--color-text-muted)',
+                fontWeight: isActive ? 600 : 400,
+                borderLeft: isActive ? '2px solid var(--color-brass)' : '2px solid transparent',
               })}
+              onMouseEnter={(e) => {
+                const target = e.currentTarget
+                if (target.getAttribute('aria-current') !== 'page') {
+                  target.style.background = 'var(--color-surface-raised)'
+                  target.style.color = 'var(--color-text-primary)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                const target = e.currentTarget
+                if (target.getAttribute('aria-current') !== 'page') {
+                  target.style.background = 'transparent'
+                  target.style.color = 'var(--color-text-muted)'
+                }
+              }}
             >
               {item.icon}
               {item.name}
@@ -138,15 +183,98 @@ export default function AppShell() {
           ))}
         </nav>
 
-        {/* User Card */}
-        <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            {brandName.charAt(0).toUpperCase()}
+        {/* User / Brand Card */}
+        <div style={{ padding: '1rem', borderTop: '1px solid var(--color-border)', position: 'relative' }} ref={dropdownRef}>
+          <div 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.75rem', 
+              cursor: 'pointer',
+              padding: '0.5rem',
+              borderRadius: '2px',
+              transition: 'background 0.15s ease',
+              background: isDropdownOpen ? 'var(--color-surface-raised)' : 'transparent'
+            }}
+          >
+            <div style={{ width: 28, height: 28, borderRadius: '2px', background: 'var(--color-surface-raised)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-mono)', fontWeight: 600, fontSize: '0.8rem', color: 'var(--color-brass)' }}>
+              {brandName.charAt(0).toUpperCase()}
+            </div>
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 500, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', color: 'var(--color-text-primary)' }} title={brandName}>{brandName}</div>
+              <div style={{ fontSize: '0.65rem', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Active Brand</div>
+            </div>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-text-muted)', flexShrink: 0 }}><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }} title={brandName}>{brandName}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--maroon)', fontWeight: 600 }}>Enterprise Plan</div>
-          </div>
+          
+          {/* Brand Switcher Dropdown */}
+          {isDropdownOpen && (
+            <div style={{
+              position: 'absolute',
+              bottom: 'calc(100% + 0.5rem)',
+              left: '1rem',
+              right: '1rem',
+              background: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '2px',
+              padding: '0.5rem',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              zIndex: 50,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.25rem'
+            }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', padding: '0.25rem 0.5rem 0.4rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                Switch Brand
+              </div>
+              {brands.map((b) => (
+                <div
+                  key={b.id}
+                  onClick={() => handleBrandSwitch(b.id)}
+                  style={{
+                    padding: '0.45rem 0.5rem',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem',
+                    color: b.id === brandId ? 'var(--color-brass)' : 'var(--color-text-muted)',
+                    background: b.id === brandId ? 'rgba(184,137,74,0.08)' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    borderLeft: b.id === brandId ? '2px solid var(--color-brass)' : '2px solid transparent',
+                  }}
+                >
+                  <div style={{ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                    {b.name}
+                  </div>
+                </div>
+              ))}
+              <div style={{ height: '1px', background: 'var(--color-border)', margin: '0.25rem 0' }} />
+              <div
+                onClick={() => navigate('/setup')}
+                style={{
+                  padding: '0.45rem 0.5rem',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  color: 'var(--color-brass)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontWeight: 500
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(184,137,74,0.06)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Create New Brand
+              </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -154,33 +282,33 @@ export default function AppShell() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top Bar */}
         <header style={{
-          height: 64,
-          background: 'var(--card)',
-          borderBottom: '1px solid var(--border)',
+          height: 56,
+          background: 'var(--color-surface)',
+          borderBottom: '1px solid var(--color-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0 2rem'
         }}>
           {/* Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '0.5rem 1rem', borderRadius: 6, width: 320 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)', background: 'var(--color-ink)', padding: '0.4rem 0.875rem', borderRadius: 2, border: '1px solid var(--color-border)', width: 300 }}>
             <IconSearch />
             <input 
               type="text" 
-              placeholder="Search analytics or documents..." 
-              style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.9rem', width: '100%', color: 'var(--text-primary)' }} 
+              placeholder="Search analytics..." 
+              style={{ background: 'transparent', border: 'none', outline: 'none', fontFamily: 'var(--font-sans)', fontSize: '0.85rem', width: '100%', color: 'var(--color-text-primary)' }} 
             />
           </div>
 
           {/* Right Actions */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', color: 'var(--color-text-muted)' }}>
             <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><IconBell /></button>
             <button style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}><IconHelp /></button>
           </div>
         </header>
 
         {/* Page Content */}
-        <main style={{ flex: 1, padding: '2rem', overflowY: 'auto' }}>
+        <main style={{ flex: 1, padding: '2rem', overflowY: 'auto', background: 'var(--color-ink)' }}>
           <Outlet />
         </main>
       </div>

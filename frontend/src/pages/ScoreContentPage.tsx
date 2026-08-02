@@ -7,7 +7,7 @@ export default function ScoreContentPage() {
   const navigate = useNavigate()
   
   const [content, setContent] = useState('')
-  const [modality, setModality] = useState<'text' | 'image'>('text')
+  const [modality, setModality] = useState<'text' | 'image' | 'pdf'>('text')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isScoring, setIsScoring] = useState(false)
@@ -22,7 +22,7 @@ export default function ScoreContentPage() {
 
   const handleScore = async () => {
     if (modality === 'text' && !content.trim()) return
-    if (modality === 'image' && !imageFile) return
+    if ((modality === 'image' || modality === 'pdf') && !imageFile) return
     setIsScoring(true)
     
     // Simulate pipeline stages visually for the demo
@@ -31,7 +31,7 @@ export default function ScoreContentPage() {
     }, 1200)
 
     try {
-      const payload = modality === 'image' ? imageFile! : content;
+      const payload = modality === 'text' ? content : imageFile!;
       const result = await scoreContent(id || 'draft', payload, modality)
       if (modality === 'image') {
         result.modality = 'image';
@@ -71,25 +71,25 @@ export default function ScoreContentPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
+      background: 'var(--color-ink)',
       fontFamily: 'var(--font-sans)',
       padding: '2rem'
     }}>
       <div style={{
-        background: 'rgba(184,134,46,0.08)',
-        border: '1px solid rgba(184,134,46,0.3)',
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
         borderRadius: 12,
         padding: '3rem',
         maxWidth: 600,
         width: '100%',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
         textAlign: 'center'
       }}>
         
-        <h2 style={{ color: '#F7F1E8', fontFamily: 'var(--font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>
+        <h2 style={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-heading)', fontSize: '2rem', marginBottom: '0.5rem' }}>
           Score Content
         </h2>
-        <p style={{ color: 'rgba(247,241,232,0.7)', marginBottom: '2rem' }}>
+        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
           Test your marketing copy or visual assets against your brand's unique fingerprint.
         </p>
 
@@ -99,10 +99,10 @@ export default function ScoreContentPage() {
             onClick={() => setModality('text')}
             style={{
               padding: '0.5rem 1.5rem',
-              background: modality === 'text' ? 'rgba(184,134,46,0.25)' : 'transparent',
-              color: modality === 'text' ? '#E8C87A' : 'rgba(247,241,232,0.45)',
+              background: modality === 'text' ? 'var(--color-surface-hover)' : 'transparent',
+              color: modality === 'text' ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
               border: '1px solid',
-              borderColor: modality === 'text' ? '#B8862E' : 'rgba(184,134,46,0.3)',
+              borderColor: modality === 'text' ? 'var(--color-border)' : 'var(--color-border)',
               borderRadius: 6,
               cursor: 'pointer',
               fontWeight: 600,
@@ -115,16 +115,32 @@ export default function ScoreContentPage() {
             onClick={() => setModality('image')}
             style={{
               padding: '0.5rem 1.5rem',
-              background: modality === 'image' ? 'rgba(184,134,46,0.25)' : 'transparent',
-              color: modality === 'image' ? '#E8C87A' : 'rgba(247,241,232,0.45)',
+              background: modality === 'image' ? 'var(--color-surface-hover)' : 'transparent',
+              color: modality === 'image' ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
               border: '1px solid',
-              borderColor: modality === 'image' ? '#B8862E' : 'rgba(184,134,46,0.3)',
+              borderColor: modality === 'image' ? 'var(--color-border)' : 'var(--color-border)',
               borderRadius: 6,
               cursor: 'pointer',
               fontWeight: 600,
             }}
           >
             Image
+          </button>
+          <button 
+            type="button"
+            onClick={() => { setModality('pdf'); setImageFile(null); setPreviewUrl(null); }}
+            style={{
+              padding: '0.5rem 1.5rem',
+              background: modality === 'pdf' ? 'var(--color-surface-hover)' : 'transparent',
+              color: modality === 'pdf' ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+              border: '1px solid',
+              borderColor: modality === 'pdf' ? 'var(--color-border)' : 'var(--color-border)',
+              borderRadius: 6,
+              cursor: 'pointer',
+              fontWeight: 600,
+            }}
+          >
+            PDF
           </button>
         </div>
 
@@ -137,10 +153,10 @@ export default function ScoreContentPage() {
             style={{
               width: '100%',
               height: 200,
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px solid rgba(184,134,46,0.4)',
+              background: 'var(--color-ink)',
+              border: '1px solid var(--color-border)',
               borderRadius: 8,
-              color: '#F7F1E8',
+              color: 'var(--color-text-primary)',
               padding: '1rem',
               fontSize: '1rem',
               lineHeight: 1.5,
@@ -157,8 +173,8 @@ export default function ScoreContentPage() {
             style={{
               width: '100%',
               height: 200,
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px dashed rgba(184,134,46,0.6)',
+              background: 'var(--color-ink)',
+              border: '1px dashed var(--color-border)',
               borderRadius: 8,
               display: 'flex',
               flexDirection: 'column',
@@ -169,18 +185,23 @@ export default function ScoreContentPage() {
               cursor: 'pointer'
             }}
           >
-            {previewUrl ? (
+            {previewUrl && modality === 'image' ? (
               <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }} />
+            ) : previewUrl && modality === 'pdf' ? (
+              <div style={{ color: 'var(--color-text-primary)', fontSize: '1rem', textAlign: 'center', padding: '1rem' }}>
+                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '0.5rem' }}>📄</span>
+                {imageFile?.name}
+              </div>
             ) : (
               <>
-                <div style={{ color: '#E8C87A', fontSize: '2rem', marginBottom: '0.5rem' }}>â§</div>
-                <p style={{ color: 'rgba(247,241,232,0.7)', margin: 0 }}>Drag and drop an image here</p>
-                <p style={{ color: 'rgba(247,241,232,0.4)', fontSize: '0.8rem', marginTop: '0.25rem' }}>or click to browse</p>
+                <div style={{ color: 'var(--color-text-muted)', fontSize: '2rem', marginBottom: '0.5rem' }}>⇧</div>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0 }}>Drag and drop a{modality === 'pdf' ? ' PDF' : 'n image'} here</p>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', marginTop: '0.25rem' }}>or click to browse</p>
               </>
             )}
             <input 
               type="file" 
-              accept="image/*" 
+              accept={modality === 'pdf' ? '.pdf,application/pdf' : 'image/*'} 
               onChange={handleFileSelect}
               style={{
                 position: 'absolute',
@@ -192,8 +213,8 @@ export default function ScoreContentPage() {
         )}
 
         {isScoring ? (
-          <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: 8 }}>
-            <p style={{ color: '#E8C87A', fontWeight: 600, letterSpacing: '0.05em' }}>
+          <div style={{ padding: '1rem', background: 'var(--color-surface)', borderRadius: 8 }}>
+            <p style={{ color: 'var(--color-text-primary)', fontWeight: 600, letterSpacing: '0.05em' }}>
               {STAGES[stageIndex]}
             </p>
             <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: '0.75rem' }}>
@@ -201,7 +222,7 @@ export default function ScoreContentPage() {
                 <div key={i} style={{
                   height: 4,
                   width: 24,
-                  background: i <= stageIndex ? '#B8862E' : 'rgba(247,241,232,0.1)',
+                  background: i <= stageIndex ? 'var(--color-maroon)' : 'var(--color-border)',
                   borderRadius: 2,
                   transition: 'background 0.3s ease'
                 }} />
@@ -216,8 +237,8 @@ export default function ScoreContentPage() {
                 flex: 1,
                 padding: '0.875rem',
                 background: 'transparent',
-                border: '1px solid rgba(247,241,232,0.3)',
-                color: '#F7F1E8',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-primary)',
                 borderRadius: 6,
                 fontWeight: 600,
                 cursor: 'pointer'
@@ -228,16 +249,12 @@ export default function ScoreContentPage() {
             <button
               onClick={handleScore}
               disabled={modality === 'text' ? !content.trim() : !imageFile}
+              className="btn-primary"
               style={{
                 flex: 2,
                 padding: '0.875rem',
-                background: (modality === 'text' ? content.trim() : imageFile) ? '#B8862E' : 'rgba(184,134,46,0.3)',
-                border: 'none',
-                color: '#1A050A',
-                borderRadius: 6,
-                fontWeight: 700,
-                cursor: (modality === 'text' ? content.trim() : imageFile) ? 'pointer' : 'not-allowed',
-                transition: 'background 0.2s'
+                fontSize: '1rem',
+                opacity: (modality === 'text' ? content.trim() : imageFile) ? 1 : 0.5,
               }}
             >
               Score This

@@ -36,7 +36,7 @@ export default function DriftDashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)', color: '#E8C87A' }}>
+      <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-text-muted)' }}>
         Retrieving history...
       </div>
     )
@@ -44,7 +44,7 @@ export default function DriftDashboardPage() {
 
   if (error) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)', color: '#ff6b6b' }}>
+      <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--danger)' }}>
         Error: {error}
       </div>
     )
@@ -57,131 +57,101 @@ export default function DriftDashboardPage() {
   }))
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
-        fontFamily: 'var(--font-sans)',
-        color: '#F7F1E8',
-      }}
-    >
-      <nav className="flex items-center justify-between px-8 py-5">
-        <div className="flex items-center gap-2">
-          <span
-            className="w-7 h-7 rounded flex items-center justify-center text-sm font-bold"
-            style={{ background: 'linear-gradient(135deg, #B8862E, #D4A44A)', color: '#1C1008' }}
-          >
-            M
-          </span>
-          <span
-            className="text-base font-semibold tracking-widest uppercase"
-            style={{ fontFamily: 'var(--font-heading)', color: '#E8C87A' }}
-          >
-            Muthirai
-          </span>
-        </div>
-        <button onClick={() => navigate(`/brands/${id}/dashboard`)} className="btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 1rem', background: 'transparent', border: '1px solid #E8C87A', color: '#E8C87A', borderRadius: 4, cursor: 'pointer' }}>
-          ← Back to Dashboard
-        </button>
-      </nav>
-
-      <main className="max-w-4xl mx-auto px-6 py-10">
-        <div className="mb-10 text-center">
-          <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', fontWeight: 700, color: '#E8C87A', marginBottom: '0.5rem' }}>
-            Drift Dashboard
-          </h1>
-          <p style={{ color: 'rgba(247,241,232,0.6)' }}>
-            Track your brand's consistency and distinctiveness over time.
-          </p>
+    <div style={{ fontFamily: 'var(--font-sans)', color: 'var(--color-text-primary)' }}>
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.75rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '0.25rem' }}>
+              Drift Analytics
+            </h1>
+            <p style={{ color: 'var(--color-text-muted)' }}>
+              Track your brand's consistency and distinctiveness over time.
+            </p>
+          </div>
+          <button onClick={() => navigate(`/brands/${id}/score`)} className="btn-primary">
+            Score New Content
+          </button>
         </div>
 
         {history.length < 2 ? (
-          <div style={{ textAlign: 'center', padding: '4rem', background: 'rgba(184,134,46,0.1)', border: '1px solid rgba(184,134,46,0.3)', borderRadius: 12 }}>
-            <p style={{ color: 'rgba(247,241,232,0.7)', fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+          <div className="card" style={{ textAlign: 'center', padding: '4rem' }}>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '1rem', marginBottom: '1.5rem' }}>
               Score a few more pieces of content to start seeing your brand's trend.
             </p>
             <button
               onClick={() => navigate(`/brands/${id}/score`)}
-              style={{
-                background: '#B8862E',
-                color: '#1A050A',
-                border: 'none',
-                padding: '0.75rem 2rem',
-                borderRadius: 4,
-                fontWeight: 'bold',
-                cursor: 'pointer'
-              }}
+              className="btn-primary"
             >
               Score New Content
             </button>
           </div>
         ) : (
           <>
-            <div style={{ background: 'rgba(26,26,26,0.5)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)', marginBottom: '2rem', height: 400 }}>
+            <div className="card" style={{ marginBottom: '2rem', height: 400, padding: '1.5rem' }}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(247,241,232,0.1)" />
-                  <XAxis dataKey="date" stroke="rgba(247,241,232,0.5)" tick={{ fill: 'rgba(247,241,232,0.5)' }} />
-                  <YAxis domain={[0, 100]} stroke="rgba(247,241,232,0.5)" tick={{ fill: 'rgba(247,241,232,0.5)' }} tickFormatter={(tick) => `${tick}%`} />
-                  <Tooltip 
-                    contentStyle={{ background: '#1A1A1A', border: '1px solid rgba(184,134,46,0.5)', borderRadius: 8, color: '#F7F1E8' }}
-                    itemStyle={{ fontWeight: 'bold' }}
+                <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="date" stroke="var(--color-text-muted)" tick={{ fill: 'var(--color-text-muted)', fontSize: 11 }} />
+                  <YAxis domain={[0, 100]} stroke="var(--color-text-muted)" tick={{ fill: 'var(--color-text-muted)', fontSize: 11 }} tickFormatter={(tick) => `${tick}%`} />
+                  <Tooltip
+                    contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 6, color: 'var(--color-text-primary)', fontSize: '0.875rem' }}
+                    itemStyle={{ fontWeight: 600 }}
                   />
-                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" name="Consistency" dataKey="consistency" stroke="#7A1F2B" strokeWidth={3} dot={{ fill: '#7A1F2B', r: 4 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" name="Distinctiveness" dataKey="distinctiveness" stroke="#B8862E" strokeWidth={3} dot={{ fill: '#B8862E', r: 4 }} activeDot={{ r: 6 }} />
+                  <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--color-text-muted)' }} />
+                  <Line type="monotone" name="Consistency" dataKey="consistency" stroke="var(--color-maroon)" strokeWidth={2} dot={{ fill: 'var(--color-maroon)', r: 3 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" name="Distinctiveness" dataKey="distinctiveness" stroke="var(--color-gold)" strokeWidth={2} dot={{ fill: 'var(--color-gold)', r: 3 }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
             <div>
-              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', color: '#E8C87A', marginBottom: '1rem' }}>
+              <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '1rem' }}>
                 Content History
               </h2>
-              <div style={{ background: 'rgba(26,26,26,0.5)', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)', overflow: 'hidden' }}>
+              <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ background: 'rgba(184,134,46,0.1)', borderBottom: '1px solid rgba(184,134,46,0.2)' }}>
-                      <th style={{ padding: '1rem', fontWeight: 600, color: '#E8C87A', fontSize: '0.875rem' }}>Date</th>
-                      <th style={{ padding: '1rem', fontWeight: 600, color: '#E8C87A', fontSize: '0.875rem' }}>Quadrant</th>
-                      <th style={{ padding: '1rem', fontWeight: 600, color: '#E8C87A', fontSize: '0.875rem', textAlign: 'right' }}>Consistency</th>
-                      <th style={{ padding: '1rem', fontWeight: 600, color: '#E8C87A', fontSize: '0.875rem', textAlign: 'right' }}>Distinctiveness</th>
+                    <tr style={{ background: 'var(--color-bg)', borderBottom: '1px solid var(--color-border)' }}>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quadrant</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Consistency</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600, color: 'var(--color-text-muted)', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Distinctiveness</th>
                     </tr>
                   </thead>
                   <tbody>
                     {history.map((item, idx) => (
-                      <tr 
-                        key={idx} 
+                      <tr
+                        key={idx}
                         onClick={() => navigate(`/brands/${id}/results`, { state: { result: item } })}
-                        style={{ 
-                          borderBottom: idx === history.length - 1 ? 'none' : '1px solid rgba(247,241,232,0.1)',
+                        style={{
+                          borderBottom: idx === history.length - 1 ? 'none' : '1px solid var(--color-border)',
                           cursor: 'pointer',
-                          transition: 'background 0.2s'
+                          transition: 'background 0.15s'
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(184,134,46,0.05)')}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-surface-hover)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <td style={{ padding: '1rem', color: 'rgba(247,241,232,0.8)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '0.875rem 1rem', color: 'var(--color-text-primary)', fontSize: '0.875rem' }}>
                           {new Date(item.scored_at).toLocaleString()}
                         </td>
-                        <td style={{ padding: '1rem' }}>
-                          <span style={{ 
-                            background: 'rgba(184,134,46,0.15)', 
-                            color: '#E8C87A', 
-                            padding: '0.25rem 0.5rem', 
-                            borderRadius: 4, 
-                            fontSize: '0.75rem', 
-                            fontWeight: 'bold', 
-                            textTransform: 'uppercase', 
-                            letterSpacing: '0.05em' 
+                        <td style={{ padding: '0.875rem 1rem' }}>
+                          <span style={{
+                            background: item.quadrant === 'on_brand' ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)',
+                            color: item.quadrant === 'on_brand' ? 'var(--success)' : 'var(--danger)',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: 4,
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            textTransform: 'capitalize',
+                            letterSpacing: '0.02em'
                           }}>
                             {item.quadrant.replace(/_/g, ' ')}
                           </span>
                         </td>
-                        <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '0.9rem' }}>
+                        <td style={{ padding: '0.875rem 1rem', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '0.875rem', color: 'var(--color-text-primary)' }}>
                           {(item.consistency_score * 100).toFixed(0)}%
                         </td>
-                        <td style={{ padding: '1rem', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: '#B8862E' }}>
+                        <td style={{ padding: '0.875rem 1rem', textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                           {(item.distinctiveness_score * 100).toFixed(0)}%
                         </td>
                       </tr>
@@ -192,7 +162,7 @@ export default function DriftDashboardPage() {
             </div>
           </>
         )}
-      </main>
+      </div>
     </div>
   )
 }

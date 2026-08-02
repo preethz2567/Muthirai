@@ -6,6 +6,8 @@
  * No real HTTP requests — swap the implementations out in a later prompt.
  */
 
+import fallbackData from './fallback-results.json'
+
 // ── Types (TRD §4.1) ─────────────────────────────────────────────────────────
 
 export interface VisualTokens {
@@ -41,10 +43,32 @@ export interface TrajectoryChatResponse {
   target_card: TargetCard
 }
 
+export interface BrandListOut {
+  id: string
+  name: string
+  created_at: string
+}
 
+export interface BrandOut {
+  id: string
+  name: string
+  source_urls?: string[]
+  created_at: string
+  updated_at: string
+  identity_card?: BrandIdentityCard
+}
 
 
 // ── Public API ────────────────────────────────────────────────────────────────
+
+export async function getBrands(): Promise<BrandListOut[]> {
+  const API_BASE = 'http://localhost:8000'
+  const res = await fetch(`${API_BASE}/brands`)
+  if (!res.ok) {
+    throw new Error(`Failed to fetch brands: ${res.statusText}`)
+  }
+  return res.json()
+}
 
 export async function createBrand(
   name: string,
@@ -188,7 +212,7 @@ export async function uploadReferenceImages(brandId: string, files: File[]): Pro
 export async function scoreContent(
   brandId: string,
   content: string | File,
-  modality: 'text' | 'image' = 'text'
+  modality: 'text' | 'image' | 'pdf' = 'text'
 ): Promise<ContentScoreResult> {
   const API_BASE = 'http://localhost:8000'
   
@@ -198,7 +222,7 @@ export async function scoreContent(
 
     const formData = new FormData();
     formData.append('modality', modality);
-    if (modality === 'image' && content instanceof File) {
+    if ((modality === 'image' || modality === 'pdf') && content instanceof File) {
       formData.append('file', content);
     } else if (modality === 'text' && typeof content === 'string') {
       formData.append('content', content);
@@ -222,9 +246,8 @@ export async function scoreContent(
     
     // Load fallback results
     try {
-      const fallbackData = await import('./fallback-results.json')
       // Randomly pick one of the 4 results
-      const results = Object.values(fallbackData.default || fallbackData) as any[]
+      const results = Object.values(fallbackData) as any[]
       const fallbackResult = results[Math.floor(Math.random() * results.length)]
       
       return {

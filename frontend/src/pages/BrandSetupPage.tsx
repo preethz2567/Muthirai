@@ -5,11 +5,12 @@
  *   'idle'      — form shown, validation active
  *   'loading'   — mock API call in progress, animated pipeline stages
  *
- * On success: navigate to /brands/:id/review with identity card in router state.
+ * On success: navigate to /brands/:id/dashboard with identity card in router state.
  */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createBrand } from '../lib/api'
+import VerificationSeal from '../components/VerificationSeal'
 
 // ── Ingestion pipeline stages ─────────────────────────────────────────────────
 
@@ -43,7 +44,6 @@ export default function BrandSetupPage() {
     setPageState('loading')
     setActiveStage(0)
 
-    // Advance stage indicators during the 2.5 s delay
     const t1 = setTimeout(() => setActiveStage(1), 800)
     const t2 = setTimeout(() => setActiveStage(2), 1600)
 
@@ -51,6 +51,7 @@ export default function BrandSetupPage() {
       const card = await createBrand(brandName.trim(), inputVal.trim())
       clearTimeout(t1)
       clearTimeout(t2)
+      localStorage.setItem('muthirai_brand_id', card.brand_id)
       navigate(`/brands/${card.brand_id}/review`, { state: { card } })
     } catch {
       clearTimeout(t1)
@@ -68,36 +69,35 @@ export default function BrandSetupPage() {
           className="w-full max-w-md mx-auto animate-fade-up"
           style={{ textAlign: 'center' }}
         >
-          {/* Spinner ring */}
           <div className="flex justify-center mb-8">
             <div
               className="spin-slow"
               style={{
-                width: 64,
-                height: 64,
+                width: 56,
+                height: 56,
                 borderRadius: '50%',
-                border: '3px solid rgba(184,134,46,0.15)',
-                borderTopColor: '#B8862E',
+                border: '2px solid var(--color-border)',
+                borderTopColor: 'var(--color-oxblood)',
               }}
             />
           </div>
 
           <h2
             style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '1.4rem',
-              fontWeight: 600,
-              color: '#F7F1E8',
+              fontFamily: 'var(--font-display)',
+              fontSize: '1.35rem',
+              fontWeight: 400,
+              color: 'var(--color-text-primary)',
+              letterSpacing: '-0.02em',
               marginBottom: '0.5rem',
             }}
           >
             Reading your brand's voice…
           </h2>
-          <p style={{ fontSize: '0.85rem', color: 'rgba(247,241,232,0.5)', marginBottom: '2.5rem' }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '2.5rem', fontFamily: 'var(--font-sans)' }}>
             The Ingestion Agent is analysing your content. This takes up to 60 seconds.
           </p>
 
-          {/* Stage pills */}
           <div className="flex flex-col gap-3">
             {STAGES.map((stage, i) => {
               const done    = i < activeStage
@@ -106,30 +106,33 @@ export default function BrandSetupPage() {
               return (
                 <div
                   key={stage.key}
-                  className="flex items-center gap-3 rounded-lg px-4 py-3 transition-all duration-500"
+                  className="flex items-center gap-3 rounded-md px-4 py-3 transition-all duration-500"
                   style={{
                     background: active
-                      ? 'rgba(184,134,46,0.18)'
+                      ? 'rgba(110,31,43,0.15)'
                       : done
-                      ? 'rgba(184,134,46,0.08)'
-                      : 'rgba(0,0,0,0.2)',
+                      ? 'rgba(110,31,43,0.07)'
+                      : 'var(--color-surface)',
                     border: `1px solid ${
-                      active ? 'rgba(184,134,46,0.6)'
-                      : done  ? 'rgba(184,134,46,0.3)'
-                      :         'rgba(247,241,232,0.08)'
+                      active ? 'rgba(110,31,43,0.5)'
+                      : done  ? 'rgba(110,31,43,0.2)'
+                      :         'var(--color-border)'
                     }`,
-                    opacity: pending ? 0.4 : 1,
+                    opacity: pending ? 0.45 : 1,
                   }}
                 >
-                  {/* Status icon */}
-                  <span style={{ fontSize: '1rem', width: 20, textAlign: 'center', color: done ? '#B8862E' : active ? '#E8C87A' : 'rgba(247,241,232,0.3)' }}>
+                  <span style={{
+                    fontSize: '1rem', width: 20, textAlign: 'center',
+                    color: done ? 'var(--color-oxblood)' : active ? 'var(--color-text-primary)' : 'var(--color-text-muted)'
+                  }}>
                     {done ? '✓' : stage.icon}
                   </span>
                   <span
                     style={{
-                      fontSize: '0.85rem',
+                      fontSize: '0.875rem',
                       fontWeight: active ? 600 : 400,
-                      color: active ? '#F7F1E8' : done ? '#B8862E' : 'rgba(247,241,232,0.4)',
+                      fontFamily: 'var(--font-sans)',
+                      color: active ? 'var(--color-text-primary)' : done ? 'var(--color-oxblood)' : 'var(--color-text-muted)',
                     }}
                   >
                     {stage.label}
@@ -140,10 +143,9 @@ export default function BrandSetupPage() {
                         <span
                           key={d}
                           style={{
-                            width: 5,
-                            height: 5,
+                            width: 5, height: 5,
                             borderRadius: '50%',
-                            background: '#B8862E',
+                            background: 'var(--color-oxblood)',
                             animation: `pulse-dot 1.2s ease-in-out ${d * 0.2}s infinite`,
                           }}
                         />
@@ -163,7 +165,6 @@ export default function BrandSetupPage() {
   return (
     <PageShell>
       <div className="w-full max-w-xl mx-auto">
-        {/* Back link */}
         <button
           onClick={() => navigate('/')}
           className="btn-outline mb-8"
@@ -175,29 +176,29 @@ export default function BrandSetupPage() {
         <div className="animate-fade-up">
           <p
             className="text-xs tracking-widest uppercase mb-3"
-            style={{ color: '#B8862E', fontFamily: 'var(--font-heading)' }}
+            style={{ color: 'var(--color-brass)', fontFamily: 'var(--font-mono)' }}
           >
             Step 1 of 3
           </p>
           <h1
             style={{
-              fontFamily: 'var(--font-heading)',
+              fontFamily: 'var(--font-display)',
               fontSize: '2rem',
-              fontWeight: 700,
-              color: '#F7F1E8',
+              fontWeight: 400,
+              color: 'var(--color-text-primary)',
+              letterSpacing: '-0.03em',
               marginBottom: '0.5rem',
             }}
           >
             Set Up Your Brand
           </h1>
-          <p style={{ fontSize: '0.9rem', color: 'rgba(247,241,232,0.55)', marginBottom: '2rem' }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
             Give us your brand's content and we'll extract your voice automatically.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 animate-fade-up animate-delay-1">
 
-          {/* Brand name */}
           <div>
             <label htmlFor="brand-name" className="field-label">Brand Name</label>
             <input
@@ -211,12 +212,11 @@ export default function BrandSetupPage() {
             />
           </div>
 
-          {/* Mode toggle */}
           <div>
             <span className="field-label">Source</span>
             <div
-              className="flex rounded-lg overflow-hidden"
-              style={{ border: '1px solid rgba(184,134,46,0.3)', width: 'fit-content' }}
+              className="flex rounded-md overflow-hidden"
+              style={{ border: '1px solid var(--color-border)', width: 'fit-content' }}
             >
               {(['url', 'paste'] as InputMode[]).map(m => (
                 <button
@@ -228,11 +228,11 @@ export default function BrandSetupPage() {
                     padding: '0.5rem 1.25rem',
                     fontSize: '0.82rem',
                     fontWeight: 500,
-                    background: mode === m ? 'rgba(184,134,46,0.25)' : 'transparent',
-                    color: mode === m ? '#E8C87A' : 'rgba(247,241,232,0.45)',
+                    background: mode === m ? 'var(--color-surface-hover)' : 'transparent',
+                    color: mode === m ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
                     border: 'none',
                     cursor: 'pointer',
-                    transition: 'background 0.2s, color 0.2s',
+                    transition: 'background 0.15s, color 0.15s',
                   }}
                 >
                   {m === 'url' ? '🔗  Paste a URL' : '📋  Paste content'}
@@ -241,7 +241,6 @@ export default function BrandSetupPage() {
             </div>
           </div>
 
-          {/* Input field */}
           {mode === 'url' ? (
             <div>
               <label htmlFor="source-url" className="field-label">Brand Website URL</label>
@@ -253,7 +252,7 @@ export default function BrandSetupPage() {
                 value={inputVal}
                 onChange={e => setInputVal(e.target.value)}
               />
-              <p style={{ fontSize: '0.72rem', color: 'rgba(247,241,232,0.35)', marginTop: '0.4rem' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '0.4rem' }}>
                 We'll extract brand voice signals from this page.
               </p>
             </div>
@@ -269,27 +268,25 @@ export default function BrandSetupPage() {
                 onChange={e => setInputVal(e.target.value)}
                 style={{ resize: 'vertical' }}
               />
-              <p style={{ fontSize: '0.72rem', color: 'rgba(247,241,232,0.35)', marginTop: '0.4rem' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '0.4rem' }}>
                 More text = richer identity card.
               </p>
             </div>
           )}
 
-          {/* Error */}
           {error && (
             <p
-              className="text-sm rounded-lg px-4 py-3"
-              style={{ background: 'rgba(200,60,60,0.15)', border: '1px solid rgba(200,60,60,0.4)', color: '#F4A0A0' }}
+              className="text-sm rounded-md px-4 py-3"
+              style={{ background: 'rgba(248,81,73,0.1)', border: '1px solid rgba(248,81,73,0.4)', color: '#F85149' }}
             >
               {error}
             </p>
           )}
 
-          {/* Submit */}
           <button
             id="build-profile-btn"
             type="submit"
-            className="btn-gold"
+            className="btn-primary"
             disabled={!isValid}
             style={{ alignSelf: 'flex-start', marginTop: '0.5rem' }}
           >
@@ -307,29 +304,22 @@ function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{
-        background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
-      }}
+      style={{ background: 'var(--color-ink)' }}
     >
-      {/* Nav */}
-      <nav className="flex items-center px-8 py-5">
+      <nav
+        className="flex items-center px-8 py-4"
+        style={{ borderBottom: '1px solid var(--color-border)' }}
+      >
         <div className="flex items-center gap-2">
+          <VerificationSeal variant="nav" tone="brass" />
           <span
-            className="w-7 h-7 rounded flex items-center justify-center text-sm font-bold"
-            style={{ background: 'linear-gradient(135deg, #B8862E, #D4A44A)', color: '#1C1008' }}
-          >
-            M
-          </span>
-          <span
-            className="text-base font-semibold tracking-widest uppercase"
-            style={{ fontFamily: 'var(--font-heading)', color: '#E8C87A' }}
+            className="text-base font-semibold"
+            style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.01em', color: 'var(--color-text-primary)' }}
           >
             Muthirai
           </span>
         </div>
       </nav>
-
-      {/* Content */}
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         {children}
       </main>

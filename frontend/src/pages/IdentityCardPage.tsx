@@ -81,7 +81,7 @@ export default function IdentityCardPage() {
     <div
       className="min-h-screen"
       style={{
-        background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
+        background: 'var(--color-bg)',
       }}
     >
       {/* ── Nav ── */}
@@ -89,13 +89,13 @@ export default function IdentityCardPage() {
         <div className="flex items-center gap-2">
           <span
             className="w-7 h-7 rounded flex items-center justify-center text-sm font-bold"
-            style={{ background: 'linear-gradient(135deg, #B8862E, #D4A44A)', color: '#1C1008' }}
+            style={{ background: 'var(--color-maroon)', color: '#FFFFFF' }}
           >
             M
           </span>
           <span
             className="text-base font-semibold tracking-widest uppercase"
-            style={{ fontFamily: 'var(--font-heading)', color: '#E8C87A' }}
+            style={{ fontFamily: 'var(--font-heading)', color: 'var(--color-text-primary)' }}
           >
             Muthirai
           </span>
@@ -112,7 +112,7 @@ export default function IdentityCardPage() {
         <div className="animate-fade-up mb-8">
           <p
             className="text-xs tracking-widest uppercase mb-3"
-            style={{ color: '#B8862E', fontFamily: 'var(--font-heading)' }}
+            style={{ color: 'var(--color-text-muted)', fontFamily: 'var(--font-heading)' }}
           >
             Step 2 of 3
           </p>
@@ -121,13 +121,13 @@ export default function IdentityCardPage() {
               fontFamily: 'var(--font-heading)',
               fontSize: '2rem',
               fontWeight: 700,
-              color: '#F7F1E8',
+              color: 'var(--color-text-primary)',
               marginBottom: '0.4rem',
             }}
           >
             Your Identity Card
           </h1>
-          <p style={{ fontSize: '0.9rem', color: 'rgba(247,241,232,0.55)' }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
             Review what the Ingestion Agent extracted. Edit anything before it becomes your scoring baseline.
           </p>
         </div>
@@ -135,12 +135,12 @@ export default function IdentityCardPage() {
         {/* Brand name badge */}
         <div
           className="animate-fade-up animate-delay-1 mb-6 px-5 py-3 rounded-lg flex items-center gap-3"
-          style={{ background: 'rgba(184,134,46,0.12)', border: '1px solid rgba(184,134,46,0.3)' }}
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
           <span style={{ fontSize: '1.2rem' }}>🏷</span>
           <div>
             <div className="field-label" style={{ marginBottom: 0 }}>Brand</div>
-            <div style={{ fontSize: '1rem', fontWeight: 600, color: '#F7F1E8' }}>{card.brand_name}</div>
+            <div style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{card.brand_name}</div>
           </div>
         </div>
 
@@ -195,7 +195,7 @@ export default function IdentityCardPage() {
           >
             <div>
               <div className="section-title">Visual Tokens</div>
-              <p style={{ fontSize: '0.78rem', color: 'rgba(247,241,232,0.45)', marginBottom: '0.75rem' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>
                 Colors and style descriptors extracted from your brand
               </p>
 
@@ -212,11 +212,11 @@ export default function IdentityCardPage() {
                             width: 32,
                             height: 32,
                             background: hex,
-                            border: '2px solid rgba(247,241,232,0.2)',
+                            border: '2px solid var(--color-border)',
                           }}
                           title={hex}
                         />
-                        <span style={{ fontSize: '0.72rem', color: 'rgba(247,241,232,0.5)', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontFamily: 'var(--font-mono)' }}>
                           {hex}
                         </span>
                       </div>
@@ -224,7 +224,7 @@ export default function IdentityCardPage() {
                   </div>
                 </div>
               ) : (
-                <p style={{ fontSize: '0.8rem', color: 'rgba(247,241,232,0.35)', fontStyle: 'italic' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
                   No colors extracted — you can add them later.
                 </p>
               )}
@@ -247,14 +247,14 @@ export default function IdentityCardPage() {
         <div className="mt-8 flex items-center gap-4 animate-fade-up animate-delay-4">
           <button
             id="confirm-continue-btn"
-            className="btn-gold"
+            className="btn-primary"
             disabled={saving}
             onClick={handleConfirm}
             style={{ fontSize: '1rem', padding: '0.85rem 2rem' }}
           >
             {saving ? 'Saving Identity Card…' : 'Confirm & Continue →'}
           </button>
-          <span style={{ fontSize: '0.75rem', color: 'rgba(247,241,232,0.35)' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
             You can always edit this later from the dashboard
           </span>
         </div>
@@ -312,7 +312,7 @@ function FieldSection({
       {!inline && (
         <>
           <div className="section-title">{title}</div>
-          <p style={{ fontSize: '0.78rem', color: 'rgba(247,241,232,0.45)', marginBottom: '0.75rem' }}>{hint}</p>
+          <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: '0.75rem' }}>{hint}</p>
         </>
       )}
       {inline && (
@@ -322,7 +322,7 @@ function FieldSection({
       {/* Chips */}
       {items.length === 0 ? (
         <p
-          style={{ fontSize: '0.8rem', color: 'rgba(247,241,232,0.3)', fontStyle: 'italic', marginBottom: '0.75rem' }}
+          style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontStyle: 'italic', marginBottom: '0.75rem' }}
           onClick={() => inputRef.current?.focus()}
         >
           {emptyPrompt}
@@ -334,9 +334,9 @@ function FieldSection({
               key={item}
               className="chip"
               style={bannedStyle ? {
-                background: 'rgba(200,60,60,0.12)',
-                border: '1px solid rgba(200,80,60,0.35)',
-                color: '#F4A0A0',
+                background: 'rgba(248,81,73,0.1)',
+                border: '1px solid rgba(248,81,73,0.3)',
+                color: 'var(--danger)',
               } : {}}
             >
               {item}
@@ -370,9 +370,9 @@ function FieldSection({
           onClick={add}
           disabled={!draft.trim()}
           style={{
-            background: draft.trim() ? 'rgba(184,134,46,0.2)' : 'rgba(0,0,0,0.15)',
-            border: `1px solid ${draft.trim() ? 'rgba(184,134,46,0.5)' : 'rgba(247,241,232,0.1)'}`,
-            color: draft.trim() ? '#E8C87A' : 'rgba(247,241,232,0.25)',
+            background: draft.trim() ? 'var(--color-surface-hover)' : 'var(--color-surface)',
+            border: `1px solid ${draft.trim() ? 'var(--color-border)' : 'var(--color-border)'}`,
+            color: draft.trim() ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
             borderRadius: 6,
             padding: '0 0.9rem',
             fontSize: '1rem',

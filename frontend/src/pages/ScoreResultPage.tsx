@@ -30,10 +30,10 @@ export default function ScoreResultPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(160deg, #2A0810 0%, #4E141C 60%, #3A1000 100%)',
+      background: 'var(--color-bg)',
       fontFamily: 'var(--font-sans)',
       padding: '3rem 2rem',
-      color: '#F7F1E8',
+      color: 'var(--color-text-primary)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center'
@@ -43,18 +43,18 @@ export default function ScoreResultPage() {
           <div>
             {result.is_cached && (
               <div style={{
-                background: 'rgba(184, 134, 46, 0.1)',
-                border: '1px solid #B8862E',
-                color: '#E8C87A',
+                background: 'rgba(227,179,65,0.08)',
+                border: '1px solid rgba(227,179,65,0.3)',
+                color: 'var(--color-gold)',
                 padding: '0.75rem 1rem',
-                borderRadius: 4,
+                borderRadius: 6,
                 marginBottom: '1rem',
                 fontSize: '0.875rem'
               }}>
                 <strong>Notice:</strong> The scoring service is currently unavailable or timed out. Showing a cached demo result.
               </div>
             )}
-            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2.5rem', margin: 0, color: '#E8C87A' }}>
+            <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem', margin: 0, color: 'var(--color-text-primary)' }}>
               Score Results
             </h1>
             <p style={{ margin: '0.5rem 0 0 0', opacity: 0.8 }}>
@@ -63,15 +63,7 @@ export default function ScoreResultPage() {
           </div>
           <button
             onClick={() => navigate(`/brands/${id}/score`)}
-            style={{
-              padding: '0.75rem 1.5rem',
-              background: '#B8862E',
-              border: 'none',
-              borderRadius: 4,
-              color: '#1A050A',
-              fontWeight: 'bold',
-              cursor: 'pointer'
-            }}
+            className="btn-outline"
           >
             Score Another
           </button>
@@ -79,7 +71,7 @@ export default function ScoreResultPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
           {/* Left Column: Chart */}
-          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
+          <div style={{ background: 'var(--color-surface)', padding: '2rem', borderRadius: 6, border: '1px solid var(--color-border)' }}>
             {result.modality === 'image' && result.preview_url && (
               <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
                 <img src={result.preview_url} alt="Uploaded preview" style={{ maxHeight: 200, maxWidth: '100%', borderRadius: 8, objectFit: 'contain' }} />
@@ -99,8 +91,8 @@ export default function ScoreResultPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             
             {/* Flagged Phrases */}
-            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
-              <h3 style={{ fontFamily: 'var(--font-heading)', marginTop: 0, marginBottom: '1rem', color: '#E8C87A' }}>
+            <div style={{ background: 'var(--color-surface)', padding: '2rem', borderRadius: 6, border: '1px solid var(--color-border)' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', marginTop: 0, marginBottom: '1rem', color: 'var(--color-text-primary)' }}>
                 Critic Agent Feedback
               </h3>
               {(result.flagged_phrases || []).length === 0 ? (
@@ -118,13 +110,18 @@ export default function ScoreResultPage() {
             </div>
 
             {/* Suggested Rewrite */}
-            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
+            <div style={{ background: 'var(--color-surface)', padding: '2rem', borderRadius: 6, border: '1px solid var(--color-border)' }}>
+              {result.modality === 'pdf' && (
+                <div style={{ padding: '0.5rem 1rem', background: 'rgba(196,72,92,0.08)', border: '1px solid rgba(196,72,92,0.25)', borderRadius: 6, marginBottom: '1rem', color: 'var(--color-text-muted)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span>📄</span> Text extracted from PDF
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <h3 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: '#E8C87A' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: 'var(--color-text-primary)' }}>
                   {result.modality === 'image' ? 'Suggestion Agent Tip' : 'Suggestion Agent Rewrite'}
                 </h3>
                 {result.suggested_rewrite && result.modality !== 'image' && (
-                  <button onClick={handleCopy} style={{ background: 'transparent', border: '1px solid #B8862E', color: '#E8C87A', borderRadius: 4, padding: '0.25rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem' }}>
+                  <button onClick={handleCopy} className="btn-outline" style={{ fontSize: '0.8rem', padding: '0.25rem 0.75rem' }}>
                     Copy
                   </button>
                 )}
@@ -139,14 +136,15 @@ export default function ScoreResultPage() {
             </div>
 
             {/* Agent Trace Toggle */}
-            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '2rem', borderRadius: 12, border: '1px solid rgba(184,134,46,0.2)' }}>
+            <div style={{ background: 'var(--color-surface)', padding: '2rem', borderRadius: 6, border: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: '#E8C87A' }}>
+                <h3 style={{ fontFamily: 'var(--font-heading)', margin: 0, color: 'var(--color-text-primary)' }}>
                   Agent Trace
                 </h3>
                 <button 
                   onClick={() => setShowTrace(!showTrace)}
-                  style={{ background: 'transparent', border: '1px solid #B8862E', color: '#E8C87A', borderRadius: 4, padding: '0.25rem 0.75rem', cursor: 'pointer', fontSize: '0.8rem' }}
+                  className="btn-outline"
+                  style={{ fontSize: '0.8rem', padding: '0.25rem 0.75rem' }}
                 >
                   {showTrace ? 'Hide Reasoning' : 'View Agent Reasoning'}
                 </button>

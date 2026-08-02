@@ -1,132 +1,180 @@
 @import "tailwindcss";
 
 @theme {
-  --color-maroon: #7A1F2B;
-  --color-ink: #1A1A1A;
-  --color-sandal: #E4C9A0;
-  --color-parchment: #F7F1E8;
-  --color-gold: #B8862E;
+  /* ── Engraving palette ── */
+  --color-ink:            #12100E;
+  --color-surface:        #1A1613;
+  --color-surface-raised: #221C18;
+  --color-border:         #3A322C;
+  --color-oxblood:        #6E1F2B;
+  --color-brass:          #B8894A;
+  --color-verified:       #2F6F5E;
+  --color-parchment:      #EDE3D0;
+  --color-text-primary:   #EDE6DC;
+  --color-text-muted:     #9C8F7E;
 
-  --font-serif: 'Playfair Display', serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* ── Fonts ── */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-sans:    'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+
+  /* ── Keep --font-heading pointing to display for Tailwind utilities ── */
+  --font-heading: var(--font-display);
 }
 
 @layer base {
   :root {
-    /* ── Brand palette ─────────────────────────────── */
-    --maroon:        #7A1F2B;
-    --maroon-dark:   #4E141C;
-    --maroon-light:  #9E3040;
-    --gold:          #B8862E;
-    --gold-light:    #D4A44A;
-    --gold-pale:     #E8C87A;
-    --parchment:     #F7F1E8;
-    --parchment-dark:#EDE4D2;
-    --ink:           #1C1008;
-    --ink-muted:     #5C4033;
+    /* ── Primary palette ──────────────────────────────── */
+    --color-ink:            #12100E;
+    --color-surface:        #1A1613;
+    --color-surface-raised: #221C18;
+    --color-border:         #3A322C;
+    --color-oxblood:        #6E1F2B;
+    --color-brass:          #B8894A;
+    --color-verified:       #2F6F5E;
+    --color-parchment:      #EDE3D0;
+    --color-text-primary:   #EDE6DC;
+    --color-text-muted:     #9C8F7E;
 
-    /* ── Semantic aliases ──────────────────────────── */
-    --bg:            var(--maroon-dark);
-    --surface:       var(--maroon);
-    --surface-raised:#8B2535;
-    --border:        rgba(184,134,46,0.25);
-    --border-strong: rgba(184,134,46,0.55);
-    --text:          var(--parchment);
-    --text-muted:    rgba(247,241,232,0.55);
-    --accent:        var(--gold);
-    --accent-hover:  var(--gold-light);
+    /* ── Semantic aliases ─────────────────────────────── */
+    --success:   var(--color-verified);
+    --danger:    #A83232;
+
+    /* ── Font stacks ──────────────────────────────────── */
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-sans:    'IBM Plex Sans', system-ui, sans-serif;
+    --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+    --font-heading: var(--font-display);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background-color: var(--maroon-dark);
-    color: var(--parchment);
+    background-color: var(--color-ink);
+    color: var(--color-text-primary);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Display headings — Fraunces, tight negative tracking */
   h1, h2, h3, .font-display {
-    font-family: var(--font-heading);
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Monospace for all data values */
+  .mono, [data-mono], time, code {
+    font-family: var(--font-mono);
   }
 }
 
-/* ── Reusable utility classes ──────────────────────── */
+/* ── Component layer ──────────────────────────────────── */
 @layer components {
 
-  .btn-gold {
+  /* Primary filled button — oxblood */
+  .btn-primary {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-    color: var(--ink);
+    background: var(--color-oxblood);
+    color: var(--color-text-primary);
     font-family: var(--font-sans);
     font-weight: 600;
-    font-size: 0.95rem;
-    padding: 0.75rem 1.75rem;
-    border-radius: 6px;
-    border: none;
+    font-size: 0.875rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 3px;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.15s;
+    transition: opacity 0.15s, transform 0.1s;
     text-decoration: none;
     letter-spacing: 0.02em;
   }
-  .btn-gold:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-  .btn-gold:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-primary:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 
+  /* Ghost outline button */
   .btn-outline {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     background: transparent;
-    color: var(--parchment);
+    color: var(--color-text-primary);
     font-family: var(--font-sans);
     font-weight: 500;
-    font-size: 0.9rem;
-    padding: 0.65rem 1.5rem;
-    border-radius: 6px;
-    border: 1px solid var(--border-strong);
+    font-size: 0.875rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
+    transition: border-color 0.15s, background 0.15s;
   }
-  .btn-outline:hover { border-color: var(--gold); background: rgba(184,134,46,0.08); }
+  .btn-outline:hover {
+    border-color: var(--color-brass);
+    color: var(--color-brass);
+    background: rgba(184, 137, 74, 0.06);
+  }
 
+  /* Legacy btn-gold → brass-style */
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-oxblood);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.75rem;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+  }
+  .btn-gold:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+  .btn-gold:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+  /* Surface card — flat, hairline engraved border */
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
     padding: 1.5rem;
+    color: var(--color-text-primary);
   }
 
+  /* Parchment inset — SPARINGLY, certificate-style only */
   .card-parchment {
-    background: var(--parchment);
-    border: 1px solid var(--parchment-dark);
-    border-radius: 10px;
+    background: var(--color-parchment);
+    border: 1px solid var(--color-border);
+    border-radius: 2px;
     padding: 1.5rem;
-    color: var(--ink);
+    color: #3A2A1A;
   }
 
+  /* Tag chips */
   .chip {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    background: rgba(184,134,46,0.15);
-    border: 1px solid rgba(184,134,46,0.35);
-    color: var(--gold-pale);
-    font-size: 0.8rem;
+    background: rgba(184, 137, 74, 0.08);
+    border: 1px solid rgba(184, 137, 74, 0.25);
+    color: var(--color-brass);
+    font-size: 0.78rem;
+    font-family: var(--font-mono);
     font-weight: 500;
-    padding: 0.25rem 0.65rem;
-    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
     transition: border-color 0.15s;
   }
-  .chip:hover { border-color: var(--gold); }
+  .chip:hover { border-color: var(--color-brass); }
 
   .chip-remove {
     background: none;
     border: none;
-    color: var(--gold-pale);
+    color: var(--color-text-muted);
     cursor: pointer;
     font-size: 0.9rem;
     line-height: 1;
@@ -134,69 +182,88 @@
     opacity: 0.6;
     transition: opacity 0.15s;
   }
-  .chip-remove:hover { opacity: 1; }
+  .chip-remove:hover { opacity: 1; color: var(--color-text-primary); }
 
+  /* Form field labels — Plex Mono, uppercase tracking */
   .field-label {
     display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--color-text-muted);
     margin-bottom: 0.5rem;
   }
 
+  /* Form inputs */
   .field-input {
     width: 100%;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--parchment);
+    background: var(--color-ink);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    color: var(--color-text-primary);
     font-family: var(--font-sans);
     font-size: 0.9rem;
     padding: 0.65rem 0.9rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .field-input:focus { border-color: var(--gold); }
-  .field-input::placeholder { color: var(--text-muted); }
+  .field-input:focus {
+    border-color: var(--color-brass);
+    box-shadow: 0 0 0 3px rgba(184, 137, 74, 0.1);
+  }
+  .field-input::placeholder { color: var(--color-text-muted); opacity: 0.6; }
 
+  /* Section titles — Plex Mono, small-caps tracking */
   .section-title {
-    font-family: var(--font-heading);
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--color-text-muted);
     margin-bottom: 0.75rem;
   }
 }
 
-/* ── Animations ────────────────────────────────────── */
+/* ── Animations ─────────────────────────────────────── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position:  200% center; }
-}
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(0.7); }
+  50%       { opacity: 0.35; transform: scale(0.65); }
 }
 @keyframes spin-slow {
   to { transform: rotate(360deg); }
 }
+/* Seal settle — scale+fade for on_brand stamp */
+@keyframes sealSettle {
+  0%   { opacity: 0; transform: scale(0.75) rotate(-8deg); }
+  60%  { opacity: 1; transform: scale(1.06) rotate(1deg); }
+  80%  { transform: scale(0.97) rotate(-0.5deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
 
 .animate-fade-up { animation: fadeUp 0.5s ease both; }
-.animate-delay-1 { animation-delay: 0.1s; }
-.animate-delay-2 { animation-delay: 0.2s; }
-.animate-delay-3 { animation-delay: 0.3s; }
-.animate-delay-4 { animation-delay: 0.4s; }
+.animate-delay-1 { animation-delay: 0.08s; }
+.animate-delay-2 { animation-delay: 0.16s; }
+.animate-delay-3 { animation-delay: 0.24s; }
+.animate-delay-4 { animation-delay: 0.32s; }
 
+.animate-seal-settle { animation: sealSettle 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+.spin-slow { animation: spin-slow 2s linear infinite; }
+
+/* Shimmer (landing hero text) */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
 .shimmer-text {
-  background: linear-gradient(90deg, var(--gold-pale) 0%, var(--parchment) 40%, var(--gold) 60%, var(--gold-pale) 100%);
+  background: linear-gradient(90deg, var(--color-text-primary) 0%, var(--color-brass) 40%, var(--color-parchment) 60%, var(--color-text-primary) 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -204,5 +271,10 @@
   animation: shimmer 3s linear infinite;
 }
 
-.spin-slow { animation: spin-slow 2s linear infinite; }
-
+/* ── Guilloché texture (SVG data URI, applied as background on Brand Health header) ── */
+/* Used via .guilloche-texture class — do not use outside Brand Health card header */
+.guilloche-texture {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='40'%3E%3Cpath d='M0 20 Q25 5 50 20 Q75 35 100 20 Q125 5 150 20 Q175 35 200 20' fill='none' stroke='%23B8894A' stroke-width='0.5' stroke-opacity='0.12'/%3E%3Cpath d='M0 20 Q25 35 50 20 Q75 5 100 20 Q125 35 150 20 Q175 5 200 20' fill='none' stroke='%23B8894A' stroke-width='0.35' stroke-opacity='0.08'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 200px 40px;
+}

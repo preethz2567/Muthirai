@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
 # Valid modality values (ENUM emulated via CheckConstraint for SQLite compat)
-MODALITY_VALUES = ("text", "image")
+MODALITY_VALUES = ("text", "image", "pdf")
 
 
 def _now() -> datetime:

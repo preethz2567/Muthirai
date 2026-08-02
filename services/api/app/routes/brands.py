@@ -36,10 +36,12 @@ from app.models.score_result import ScoreResult
 from app.models.flagged_phrase import FlaggedPhrase
 from app.models.suggested_rewrite import SuggestedRewrite
 from app.models.agent_trace_step import AgentTraceStep
+from app.utils.pdf import extract_text_from_pdf
 from app.schemas.brands import (
     AgentTraceStepOut,
     BrandCreateRequest,
     BrandOut,
+    BrandListOut,
     BrandPatchRequest,
     DriftHistoryItem,
     ScoreRequest,
@@ -73,6 +75,19 @@ def _handle_worker_error(exc: Exception, operation: str) -> None:
         status_code=status.HTTP_502_BAD_GATEWAY,
         detail=f"agent-worker is unreachable ({operation}). Try again shortly.",
     )
+
+
+# ── GET /brands ───────────────────────────────────────────────────────────────
+
+@router.get(
+    "",
+    response_model=List[BrandListOut],
+    summary="List all brands",
+    description="Returns a list of all brands, ordered by creation date descending.",
+)
+def list_brands(db: Session = Depends(get_db)) -> List[BrandListOut]:
+    brands = db.query(Brand).order_by(Brand.created_at.desc()).all()
+    return [BrandListOut.model_validate(b) for b in brands]
 
 
 # ── POST /brands ──────────────────────────────────────────────────────────────
@@ -385,11 +400,23 @@ async def score_content(
         }
         blend_weight = active_trajectory.blend_weight
 
+    if modality == "pdf":
+        if not file:
+            raise HTTPException(status_code=400, detail="No PDF file provided.")
+        pdf_bytes = await file.read()
+        extracted_text = extract_text_from_pdf(pdf_bytes)
+        if not extracted_text:
+            raise HTTPException(
+                status_code=400,
+                detail="This PDF has no extractable text — try uploading it as an image instead"
+            )
+        content = extracted_text
+
     # ── 2. Call agent-worker /internal/score ──────────────────────────────────
     try:
         async with _worker_client() as client:
             form_data = {
-                "modality": modality,
+                "modality": "text" if modality == "pdf" else modality,
                 "brand_identity_card": json.dumps(identity_card_dict),
                 "blend_weight": str(blend_weight),
             }
@@ -425,7 +452,7 @@ async def score_content(
     content_item = ContentItem(
         id=content_id,
         brand_id=brand_id,
-        modality=modality if modality in ("text", "image") else "text",
+        modality=modality if modality in ("text", "image", "pdf") else "text",
         raw_content=file.filename if (modality == "image" and file) else (content or ""),
     )
     db.add(content_item)

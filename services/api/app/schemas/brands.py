@@ -61,6 +61,14 @@ class IdentityCardOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class BrandListOut(BaseModel):
+    id: str
+    name: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 class BrandOut(BaseModel):
     id: str
     name: str

@@ -29,22 +29,22 @@ export default function QuadrantChart({ contentScore, targetScore }: QuadrantCha
   return (
     <div style={{ position: 'relative', width: SIZE, height: SIZE, margin: '0 auto' }}>
       {/* Background & Grid */}
-      <svg width={SIZE} height={SIZE} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(184,134,46,0.2)', borderRadius: 4 }}>
+      <svg width={SIZE} height={SIZE} style={{ background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: 4 }}>
         <defs>
           <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-            <polygon points="0 0, 6 3, 0 6" fill="rgba(184,134,46,0.5)" />
+            <polygon points="0 0, 6 3, 0 6" fill="var(--color-gold)" />
           </marker>
         </defs>
         
         {/* Axes */}
-        <line x1={0} y1={SIZE/2} x2={SIZE} y2={SIZE/2} stroke="rgba(247,241,232,0.1)" strokeWidth="1" />
-        <line x1={SIZE/2} y1={0} x2={SIZE/2} y2={SIZE} stroke="rgba(247,241,232,0.1)" strokeWidth="1" />
+        <line x1={0} y1={SIZE/2} x2={SIZE} y2={SIZE/2} stroke="var(--color-border)" strokeWidth="1" />
+        <line x1={SIZE/2} y1={0} x2={SIZE/2} y2={SIZE} stroke="var(--color-border)" strokeWidth="1" />
 
         {/* Quadrant Labels */}
-        <text x="10" y="20" fill="rgba(247,241,232,0.3)" fontSize="10" fontFamily="Inter">Off-Brand (Try Hard)</text>
-        <text x={SIZE - 70} y="20" fill="rgba(247,241,232,0.3)" fontSize="10" fontFamily="Inter">On Brand</text>
-        <text x="10" y={SIZE - 10} fill="rgba(247,241,232,0.3)" fontSize="10" fontFamily="Inter">Off-Brand (Boring)</text>
-        <text x={SIZE - 75} y={SIZE - 10} fill="rgba(247,241,232,0.3)" fontSize="10" fontFamily="Inter">Safe Generic</text>
+        <text x="10" y="20" fill="var(--color-text-muted)" fontSize="10" fontFamily="Inter">Off-Brand (Try Hard)</text>
+        <text x={SIZE - 70} y="20" fill="var(--color-text-muted)" fontSize="10" fontFamily="Inter">On Brand</text>
+        <text x="10" y={SIZE - 10} fill="var(--color-text-muted)" fontSize="10" fontFamily="Inter">Off-Brand (Boring)</text>
+        <text x={SIZE - 75} y={SIZE - 10} fill="var(--color-text-muted)" fontSize="10" fontFamily="Inter">Safe Generic</text>
 
         {/* Trajectory Arrow (if target exists) */}
         {pTarget && (
@@ -53,7 +53,7 @@ export default function QuadrantChart({ contentScore, targetScore }: QuadrantCha
             y1={pContent.y}
             x2={pTarget.x}
             y2={pTarget.y}
-            stroke="rgba(184,134,46,0.5)"
+            stroke="var(--color-gold)"
             strokeWidth="2"
             strokeDasharray="4 4"
             markerEnd="url(#arrowhead)"
@@ -61,22 +61,22 @@ export default function QuadrantChart({ contentScore, targetScore }: QuadrantCha
         )}
 
         {/* Content Marker (Maroon) */}
-        <circle cx={pContent.x} cy={pContent.y} r="6" fill="#7A1F2B" stroke="#F7F1E8" strokeWidth="2" />
+        <circle cx={pContent.x} cy={pContent.y} r="6" fill="var(--color-maroon)" stroke="var(--color-text-primary)" strokeWidth="2" />
         
         {/* Target Marker (Gold) */}
         {pTarget && (
           <g>
-            <circle cx={pTarget.x} cy={pTarget.y} r="6" fill="#B8862E" stroke="#F7F1E8" strokeWidth="2" />
-            <text x={pTarget.x + 10} y={pTarget.y + 4} fill="#E8C87A" fontSize="12" fontFamily="Inter" fontWeight="bold">Target</text>
+            <circle cx={pTarget.x} cy={pTarget.y} r="6" fill="var(--color-gold)" stroke="var(--color-text-primary)" strokeWidth="2" />
+            <text x={pTarget.x + 10} y={pTarget.y + 4} fill="var(--color-gold)" fontSize="12" fontFamily="Inter" fontWeight="bold">Target</text>
           </g>
         )}
       </svg>
       
       {/* Axis Labels outside SVG for layout simplicity */}
-      <div style={{ position: 'absolute', bottom: -25, left: '50%', transform: 'translateX(-50%)', fontSize: '0.75rem', color: 'rgba(247,241,232,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+      <div style={{ position: 'absolute', bottom: -25, left: '50%', transform: 'translateX(-50%)', fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
         Consistency →
       </div>
-      <div style={{ position: 'absolute', top: '50%', left: -30, transform: 'translateY(-50%) rotate(-90deg)', fontSize: '0.75rem', color: 'rgba(247,241,232,0.6)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+      <div style={{ position: 'absolute', top: '50%', left: -30, transform: 'translateY(-50%) rotate(-90deg)', fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
         Distinctiveness →
       </div>
     </div>
