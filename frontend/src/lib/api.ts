@@ -8,6 +8,8 @@
 
 import fallbackData from './fallback-results.json'
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 // ── Types (TRD §4.1) ─────────────────────────────────────────────────────────
 
 export interface VisualTokens {
@@ -62,7 +64,6 @@ export interface BrandOut {
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export async function getBrands(): Promise<BrandListOut[]> {
-  const API_BASE = 'http://localhost:8000'
   const res = await fetch(`${API_BASE}/brands`)
   if (!res.ok) {
     throw new Error(`Failed to fetch brands: ${res.statusText}`)
@@ -74,7 +75,6 @@ export async function createBrand(
   name: string,
   sourceText: string,
 ): Promise<BrandIdentityCard> {
-  const API_BASE = 'http://localhost:8000'
   const response = await fetch(`${API_BASE}/brands`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -91,7 +91,6 @@ export async function createBrand(
 }
 
 export async function getBrand(brandId: string): Promise<{ name: string }> {
-  const API_BASE = 'http://localhost:8000'
   const response = await fetch(`${API_BASE}/brands/${brandId}`)
   if (!response.ok) {
     throw new Error('Failed to fetch brand')
@@ -103,7 +102,6 @@ export async function updateBrand(
   id: string,
   card: BrandIdentityCard,
 ): Promise<BrandIdentityCard> {
-  const API_BASE = 'http://localhost:8000'
   const response = await fetch(`${API_BASE}/brands/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -129,7 +127,6 @@ export async function chatTrajectory(
   id: string,
   history: ChatMessage[],
 ): Promise<TrajectoryChatResponse> {
-  const API_BASE = 'http://localhost:8000'
   const response = await fetch(`${API_BASE}/brands/${id}/trajectory/chat`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -149,7 +146,6 @@ export async function confirmTrajectory(
   targetCard: TargetCard,
   history: ChatMessage[],
 ): Promise<{ status: string }> {
-  const API_BASE = 'http://localhost:8000'
   const response = await fetch(`${API_BASE}/brands/${id}/trajectory/confirm`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -191,7 +187,6 @@ export interface ContentScoreResult {
 }
 
 export async function uploadReferenceImages(brandId: string, files: File[]): Promise<{ status: string }> {
-  const API_BASE = 'http://localhost:8000'
   const formData = new FormData()
   files.forEach(f => formData.append('images', f))
   const response = await fetch(`${API_BASE}/brands/${brandId}/reference-images`, {
@@ -214,7 +209,6 @@ export async function scoreContent(
   content: string | File,
   modality: 'text' | 'image' | 'pdf' = 'text'
 ): Promise<ContentScoreResult> {
-  const API_BASE = 'http://localhost:8000'
   
   try {
     const controller = new AbortController()
@@ -277,7 +271,6 @@ export async function getAgentTrace(
   brandId: string,
   contentId: string
 ): Promise<AgentTraceStep[]> {
-  const API_BASE = 'http://localhost:8000'
   
   try {
     const response = await fetch(`${API_BASE}/brands/${brandId}/trace/${contentId}`)
@@ -316,7 +309,6 @@ export interface DriftHistoryItem {
 export async function getBrandHistory(
   brandId: string
 ): Promise<DriftHistoryItem[]> {
-  const API_BASE = 'http://localhost:8000'
   const response = await fetch(`${API_BASE}/brands/${brandId}/history`)
 
   if (!response.ok) {
