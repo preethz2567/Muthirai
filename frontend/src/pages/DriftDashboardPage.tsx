@@ -98,8 +98,8 @@ export default function DriftDashboardPage() {
                     itemStyle={{ fontWeight: 600 }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--color-text-muted)' }} />
-                  <Line type="monotone" name="Consistency" dataKey="consistency" stroke="var(--color-maroon)" strokeWidth={2} dot={{ fill: 'var(--color-maroon)', r: 3 }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" name="Distinctiveness" dataKey="distinctiveness" stroke="var(--color-gold)" strokeWidth={2} dot={{ fill: 'var(--color-gold)', r: 3 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" name="Consistency" dataKey="consistency" stroke="var(--color-oxblood)" strokeWidth={2} dot={{ fill: 'var(--color-oxblood)', r: 3 }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" name="Distinctiveness" dataKey="distinctiveness" stroke="var(--color-brass)" strokeWidth={2} dot={{ fill: 'var(--color-brass)', r: 3 }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
