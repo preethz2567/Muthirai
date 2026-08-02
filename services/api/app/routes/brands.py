@@ -59,6 +59,8 @@ router = APIRouter(prefix="/brands", tags=["Brands"])
 # ── Internal HTTP client config ───────────────────────────────────────────────
 
 AGENT_WORKER_BASE = os.getenv("AGENT_WORKER_URL", "http://agent-worker:8001")
+if not AGENT_WORKER_BASE.startswith("http"):
+    AGENT_WORKER_BASE = f"http://{AGENT_WORKER_BASE}"
 
 # Timeout: connect 5 s, read 120 s (LLM calls can be slow).
 _TIMEOUT = httpx.Timeout(connect=5.0, read=120.0, write=10.0, pool=5.0)

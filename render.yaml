@@ -6,7 +6,10 @@ services:
     rootDir: services/api
     envVars:
       - key: AGENT_WORKER_URL
-        value: http://agent-worker:8001
+        fromService:
+          type: web
+          name: agent-worker
+          envVarKey: RENDER_INTERNAL_HOSTNAME
 
   - type: web
     name: agent-worker
