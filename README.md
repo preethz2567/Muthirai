@@ -2,7 +2,7 @@
 > **முத்திரை** • */mu-thi-rai/*  
 > *noun* : A seal, signet, or cryptographic mark of authenticity.
 
-Muthirai is an enterprise-grade brand identity enforcement and drift analytics platform. In an era where AI-generated content can dilute brand voice, Muthirai acts as a cryptographic seal of authenticity—ensuring that every piece of outbound content adheres to your established brand identity while maintaining distinctiveness against generic industry baselines.
+Muthirai is an enterprise-grade brand identity enforcement and drift analytics platform. In an era where AI-generated content can dilute brand voice, Muthirai acts as a cryptographic seal of authenticity ensuring that every piece of outbound content adheres to your established brand identity while maintaining distinctiveness against generic industry baselines.
 
 
 
