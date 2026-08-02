@@ -20,7 +20,7 @@ services:
       mountPath: /app/db-data/indexes
       sizeGB: 1
     envVars:
-      - key: OPENROUTER_API_KEY
+      - key: ANTHROPIC_API_KEY
         sync: false
       - key: LLM_MODEL
         sync: false
