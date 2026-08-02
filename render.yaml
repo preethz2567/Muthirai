@@ -3,10 +3,6 @@ services:
     name: api
     env: docker
     rootDir: services/api
-    disk:
-      name: api-data
-      mountPath: /app/db-data
-      sizeGB: 1
     envVars:
       - key: AGENT_WORKER_URL
         value: http://agent-worker:8001
@@ -15,10 +11,6 @@ services:
     name: agent-worker
     env: docker
     rootDir: services/agent-worker
-    disk:
-      name: agent-worker-data
-      mountPath: /app/db-data/indexes
-      sizeGB: 1
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false
