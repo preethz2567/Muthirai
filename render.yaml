@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: api
+    env: docker
+    rootDir: services/api
+    disk:
+      name: api-data
+      mountPath: /app/db-data
+      sizeGB: 1
+    envVars:
+      - key: AGENT_WORKER_URL
+        value: http://agent-worker:8001
+
+  - type: web
+    name: agent-worker
+    env: docker
+    rootDir: services/agent-worker
+    disk:
+      name: agent-worker-data
+      mountPath: /app/db-data/indexes
+      sizeGB: 1
+    envVars:
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        sync: false
+
+staticSites:
+  - name: frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: api
+          envVarKey: RENDER_EXTERNAL_URL
