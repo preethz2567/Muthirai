@@ -2,6 +2,7 @@ services:
   - type: web
     name: api
     env: docker
+    plan: free
     rootDir: services/api
     envVars:
       - key: AGENT_WORKER_URL
@@ -10,6 +11,7 @@ services:
   - type: web
     name: agent-worker
     env: docker
+    plan: free
     rootDir: services/agent-worker
     envVars:
       - key: ANTHROPIC_API_KEY
