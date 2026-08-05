@@ -1,4 +1,4 @@
-﻿"""
+"""
 Internal endpoints for services/api.
 """
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
@@ -11,7 +11,7 @@ import logging
 
 from app.db.session import get_db
 from app.models.embedding import Embedding
-from app.routes.brands import _worker_client, _handle_worker_error
+from app.routes.brands import _worker_client_post, _handle_worker_error
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +40,11 @@ async def create_generic_image_centroid(
     faiss_owner = f"{owner_type}:{owner_id}"
 
     try:
-        async with _worker_client() as client:
-            resp = await client.post(
-                "/internal/embed-image-centroid",
-                params={"owner": faiss_owner},
-                files=files
-            )
+        resp = await _worker_client_post(
+            "/internal/embed-image-centroid",
+            params={"owner": faiss_owner},
+            files=files
+        )
     except (httpx.ConnectError, httpx.TimeoutException) as exc:
         _handle_worker_error(exc, "embed-image-centroid")
 
