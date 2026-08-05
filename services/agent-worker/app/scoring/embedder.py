@@ -27,14 +27,20 @@ from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
-# ── Model singleton ────────────────────────────────────────────────────────────
+# ── Model singleton (Lazy Loaded) ─────────────────────────────────────────────
 
 MODEL_NAME = "all-MiniLM-L6-v2"
 EMBEDDING_DIM = 384  # fixed for all-MiniLM-L6-v2
 
-logger.info("Loading sentence-transformer model: %s", MODEL_NAME)
-_model = SentenceTransformer(MODEL_NAME)
-logger.info("Model loaded. Embedding dimension: %d", EMBEDDING_DIM)
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        logger.info("Lazy loading sentence-transformer model: %s", MODEL_NAME)
+        _model = SentenceTransformer(MODEL_NAME)
+        logger.info("Model loaded. Embedding dimension: %d", EMBEDDING_DIM)
+    return _model
 
 
 # ── Public functions ───────────────────────────────────────────────────────────
@@ -55,7 +61,8 @@ def embed_texts(texts: List[str]) -> np.ndarray:
     if not texts:
         raise ValueError("embed_texts: texts list must not be empty.")
 
-    vectors: np.ndarray = _model.encode(
+    model = get_model()
+    vectors: np.ndarray = model.encode(
         texts,
         normalize_embeddings=True,   # L2-normalise → cosine ≡ dot product
         show_progress_bar=False,

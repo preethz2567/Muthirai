@@ -26,16 +26,23 @@ from transformers import CLIPProcessor, CLIPModel
 
 logger = logging.getLogger(__name__)
 
-# ── Model singleton ────────────────────────────────────────────────────────────
+# ── Model singleton (Lazy Loaded) ─────────────────────────────────────────────
 
 MODEL_NAME = "openai/clip-vit-base-patch32"
 EMBEDDING_DIM = 512  # fixed for clip-vit-base-patch32
 
-logger.info("Loading CLIP model: %s", MODEL_NAME)
-# Note: we disable gradient computation completely since this is inference-only
-_model = CLIPModel.from_pretrained(MODEL_NAME).eval()
-_processor = CLIPProcessor.from_pretrained(MODEL_NAME)
-logger.info("CLIP Model loaded. Embedding dimension: %d", EMBEDDING_DIM)
+_model = None
+_processor = None
+
+def get_models():
+    global _model, _processor
+    if _model is None or _processor is None:
+        logger.info("Lazy loading CLIP model: %s", MODEL_NAME)
+        # Note: we disable gradient computation completely since this is inference-only
+        _model = CLIPModel.from_pretrained(MODEL_NAME).eval()
+        _processor = CLIPProcessor.from_pretrained(MODEL_NAME)
+        logger.info("CLIP Model loaded. Embedding dimension: %d", EMBEDDING_DIM)
+    return _model, _processor
 
 
 # ── Public functions ───────────────────────────────────────────────────────────
@@ -65,10 +72,11 @@ def embed_images(images: List[bytes]) -> np.ndarray:
             raise ValueError(f"embed_images: failed to decode image at index {i}. {e}")
 
     # Process and encode
-    inputs = _processor(images=pil_images, return_tensors="pt")
+    model, processor = get_models()
+    inputs = processor(images=pil_images, return_tensors="pt")
     
     # We do not need gradients for inference
-    outputs = _model.get_image_features(**inputs)
+    outputs = model.get_image_features(**inputs)
     vectors = outputs.detach().numpy()
 
     # L2-normalise → cosine ≡ dot product
