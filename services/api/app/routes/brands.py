@@ -58,9 +58,19 @@ router = APIRouter(prefix="/brands", tags=["Brands"])
 
 # ── Internal HTTP client config ───────────────────────────────────────────────
 
+import urllib.parse
+
 AGENT_WORKER_BASE = os.getenv("AGENT_WORKER_URL", "http://agent-worker:8001")
 if not AGENT_WORKER_BASE.startswith("http"):
     AGENT_WORKER_BASE = f"http://{AGENT_WORKER_BASE}"
+
+# Fix for Render's internal routing: if it's an internal hostname (no dots) and has no port, append :10000
+parsed_url = urllib.parse.urlparse(AGENT_WORKER_BASE)
+if parsed_url.hostname and "." not in parsed_url.hostname and parsed_url.port is None:
+    # locally the hostname is 'agent-worker' but port is 8001, so port is not None. 
+    # On Render, it might be 'agent-worker-xyz' with port None.
+    AGENT_WORKER_BASE = f"http://{parsed_url.hostname}:10000"
+
 
 # Timeout: connect 5 s, read 120 s (LLM calls can be slow).
 _TIMEOUT = httpx.Timeout(connect=5.0, read=120.0, write=10.0, pool=5.0)
@@ -72,10 +82,10 @@ def _worker_client() -> httpx.AsyncClient:
 
 def _handle_worker_error(exc: Exception, operation: str) -> None:
     """Convert any httpx transport error into a clean 502."""
-    logger.error("agent-worker unreachable during %s: %s", operation, exc)
+    logger.error("agent-worker unreachable at %s during %s: %s", AGENT_WORKER_BASE, operation, exc)
     raise HTTPException(
         status_code=status.HTTP_502_BAD_GATEWAY,
-        detail=f"agent-worker is unreachable ({operation}). Try again shortly.",
+        detail=f"agent-worker is unreachable at {AGENT_WORKER_BASE} ({operation}). Try again shortly.",
     )
 
 
