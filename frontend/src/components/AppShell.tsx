@@ -62,6 +62,13 @@ const IconHelp = () => (
   </svg>
 )
 
+const IconCompass = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+  </svg>
+)
+
 export default function AppShell() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -124,6 +131,7 @@ export default function AppShell() {
     { name: 'Brand Identity', path: `/brands/${brandId}/review`, icon: <IconIdentity /> },
     { name: 'Validation', path: `/brands/${brandId}/score`, icon: <IconValidation /> },
     { name: 'Drift Analytics', path: `/brands/${brandId}/drift`, icon: <IconDrift /> },
+    { name: 'Trajectory Compass', path: `/brands/${brandId}/compass`, icon: <IconCompass /> },
     { name: 'Settings', path: `/brands/${brandId}/settings`, icon: <IconSettings /> },
   ]
 

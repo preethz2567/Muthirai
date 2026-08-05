@@ -53,10 +53,10 @@ export default function BrandSetupPage() {
       clearTimeout(t2)
       localStorage.setItem('muthirai_brand_id', card.brand_id)
       navigate(`/brands/${card.brand_id}/review`, { state: { card } })
-    } catch {
+    } catch (err: any) {
       clearTimeout(t1)
       clearTimeout(t2)
-      setError('Something went wrong. Please try again.')
+      setError(err.message || 'Something went wrong. Please try again.')
       setPageState('idle')
     }
   }

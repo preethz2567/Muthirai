@@ -4,18 +4,26 @@ services:
     env: docker
     plan: free
     rootDir: services/api
+    disk:
+      name: api-db
+      mountPath: /app/db-data
+      sizeGB: 1
     envVars:
       - key: AGENT_WORKER_URL
         fromService:
           type: web
           name: agent-worker
-          envVarKey: RENDER_INTERNAL_HOSTNAME
+          envVarKey: RENDER_EXTERNAL_URL
 
   - type: web
     name: agent-worker
     env: docker
     plan: free
     rootDir: services/agent-worker
+    disk:
+      name: worker-indexes
+      mountPath: /app/indexes
+      sizeGB: 1
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false

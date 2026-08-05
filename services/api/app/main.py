@@ -13,10 +13,13 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Allow frontend dev server (and any origin in dev) to call the API
+# Allow frontend dev server and deployed frontend origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://frontend-inwt.onrender.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
