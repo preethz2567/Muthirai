@@ -72,12 +72,31 @@ if parsed_url.hostname and parsed_url.port is None:
         AGENT_WORKER_BASE = f"http://{parsed_url.hostname}:8001"
 
 
-# Timeout: connect 5 s, read 120 s (LLM calls can be slow).
-_TIMEOUT = httpx.Timeout(connect=5.0, read=120.0, write=10.0, pool=5.0)
+# Timeout: connect 60s (for cold starts), read 300s (for LLMs).
+_TIMEOUT = httpx.Timeout(connect=60.0, read=300.0, write=30.0, pool=10.0)
 
 
-def _worker_client() -> httpx.AsyncClient:
-    return httpx.AsyncClient(base_url=AGENT_WORKER_BASE, timeout=_TIMEOUT)
+async def _worker_client_post(path: str, **kwargs) -> httpx.Response:
+    """Wrapper to make POST requests to the worker with port fallback."""
+    try:
+        async with httpx.AsyncClient(base_url=AGENT_WORKER_BASE, timeout=_TIMEOUT) as client:
+            return await client.post(path, **kwargs)
+    except httpx.ConnectError as e:
+        # If connection is refused, try falling back between 8001 and 10000
+        fallback = None
+        if ":8001" in AGENT_WORKER_BASE:
+            fallback = AGENT_WORKER_BASE.replace(":8001", ":10000")
+        elif ":10000" in AGENT_WORKER_BASE:
+            fallback = AGENT_WORKER_BASE.replace(":10000", ":8001")
+            
+        if fallback:
+            logger.warning("Connection to %s failed. Trying fallback %s", AGENT_WORKER_BASE, fallback)
+            try:
+                async with httpx.AsyncClient(base_url=fallback, timeout=_TIMEOUT) as client:
+                    return await client.post(path, **kwargs)
+            except Exception:
+                raise e # raise original error if fallback also fails
+        raise e
 
 
 def _handle_worker_error(exc: Exception, operation: str) -> None:
@@ -128,11 +147,10 @@ async def create_brand(
 
     # ── 1. Call agent-worker /internal/ingest ─────────────────────────────────
     try:
-        async with _worker_client() as client:
-            resp = await client.post(
-                "/internal/ingest",
-                json={"source_text": source_text},
-            )
+        resp = await _worker_client_post(
+            "/internal/ingest",
+            json={"source_text": source_text},
+        )
     except (httpx.ConnectError, httpx.TimeoutException) as exc:
         _handle_worker_error(exc, "ingest")
 
@@ -198,14 +216,13 @@ async def create_brand(
         if not text or not text.strip():
             continue
         try:
-            async with _worker_client() as client:
-                embed_resp = await client.post(
-                    "/internal/embed",
-                    json={
-                        "text": text.strip(),
-                        "owner": f"brand_centroid:{brand_id}"
-                    },
-                )
+            embed_resp = await _worker_client_post(
+                "/internal/embed",
+                json={
+                    "text": text.strip(),
+                    "owner": f"brand_centroid:{brand_id}"
+                },
+            )
             if embed_resp.status_code == 200 and embed_errors == 0:
                 # Only persist DB record once (first successful embed)
                 embed_data = embed_resp.json()
@@ -251,12 +268,11 @@ async def upload_reference_images(
     faiss_owner = f"{owner_type}:{brand_id}"
 
     try:
-        async with _worker_client() as client:
-            resp = await client.post(
-                "/internal/embed-image-centroid",
-                params={"owner": faiss_owner},
-                files=files
-            )
+        resp = await _worker_client_post(
+            "/internal/embed-image-centroid",
+            params={"owner": faiss_owner},
+            files=files
+        )
     except (httpx.ConnectError, httpx.TimeoutException) as exc:
         _handle_worker_error(exc, "embed-image-centroid")
 
@@ -426,27 +442,26 @@ async def score_content(
 
     # ── 2. Call agent-worker /internal/score ──────────────────────────────────
     try:
-        async with _worker_client() as client:
-            form_data = {
-                "modality": "text" if modality == "pdf" else modality,
-                "brand_identity_card": json.dumps(identity_card_dict),
-                "blend_weight": str(blend_weight),
-            }
-            if content:
-                form_data["content"] = content
-            if target_identity_card_dict:
-                form_data["target_identity_card"] = json.dumps(target_identity_card_dict)
-                
-            files = None
-            if modality == "image" and file:
-                image_bytes = await file.read()
-                files = {"file": (file.filename, image_bytes, file.content_type)}
+        form_data = {
+            "modality": "text" if modality == "pdf" else modality,
+            "brand_identity_card": json.dumps(identity_card_dict),
+            "blend_weight": str(blend_weight),
+        }
+        if content:
+            form_data["content"] = content
+        if target_identity_card_dict:
+            form_data["target_identity_card"] = json.dumps(target_identity_card_dict)
             
-            resp = await client.post(
-                "/internal/score",
-                data=form_data,
-                files=files
-            )
+        files_payload = None
+        if modality == "image" and file:
+            image_bytes = await file.read()
+            files_payload = {"file": (file.filename, image_bytes, file.content_type)}
+        
+        resp = await _worker_client_post(
+            "/internal/score",
+            data=form_data,
+            files=files_payload
+        )
     except (httpx.ConnectError, httpx.TimeoutException) as exc:
         _handle_worker_error(exc, "score")
 
@@ -694,14 +709,13 @@ async def trajectory_chat(
     }
 
     try:
-        async with _worker_client() as client:
-            resp = await client.post(
-                "/internal/trajectory/chat",
-                json={
-                    "chat_history": payload.chat_history,
-                    "current_identity_card": identity_card_dict,
-                },
-            )
+        resp = await _worker_client_post(
+            "/internal/trajectory/chat",
+            json={
+                "chat_history": payload.chat_history,
+                "current_identity_card": identity_card_dict,
+            },
+        )
     except (httpx.ConnectError, httpx.TimeoutException) as exc:
         _handle_worker_error(exc, "trajectory/chat")
 
