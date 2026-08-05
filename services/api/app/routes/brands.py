@@ -64,12 +64,12 @@ AGENT_WORKER_BASE = os.getenv("AGENT_WORKER_URL", "http://agent-worker:8001")
 if not AGENT_WORKER_BASE.startswith("http"):
     AGENT_WORKER_BASE = f"http://{AGENT_WORKER_BASE}"
 
-# Fix for Render's internal routing: if it's an internal hostname (no dots) and has no port, append :10000
+# Fix for Render's internal routing: internal hostnames need the explicit 10000 port.
 parsed_url = urllib.parse.urlparse(AGENT_WORKER_BASE)
-if parsed_url.hostname and "." not in parsed_url.hostname and parsed_url.port is None:
-    # locally the hostname is 'agent-worker' but port is 8001, so port is not None. 
-    # On Render, it might be 'agent-worker-xyz' with port None.
-    AGENT_WORKER_BASE = f"http://{parsed_url.hostname}:10000"
+if parsed_url.hostname and parsed_url.port is None:
+    # If the hostname is not localhost and does not end with onrender.com (meaning it's internal)
+    if parsed_url.hostname != "localhost" and not parsed_url.hostname.endswith(".onrender.com"):
+        AGENT_WORKER_BASE = f"http://{parsed_url.hostname}:10000"
 
 
 # Timeout: connect 5 s, read 120 s (LLM calls can be slow).
